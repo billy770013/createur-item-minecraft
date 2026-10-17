@@ -1,0 +1,63 @@
+{
+ "__molang_version": 13,
+ "events": {
+  "ambient": "mob.cow.say",
+  "death": "missing.legacyref",
+  "eat": "",
+  "hurt": "mob.cow.hurt",
+  "step": "mob.cow.step"
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "variants": {
+  "key": "query.property('minecraft:sound_variant')",
+  "map": {
+   "default": {
+    "events": {
+     "ambient": {
+      "sound": "mob.cow.say",
+      "volume": 1.0
+     },
+     "death": {
+      "pitch": 0.9,
+      "sound": "mob.cow.hurt",
+      "volume": 0.5
+     },
+     "hurt": {
+      "sound": "mob.cow.hurt"
+     },
+     "step": {
+      "pitch": [
+       0.9,
+       1.1
+      ],
+      "sound": "mob.cow.step",
+      "volume": 0.65
+     }
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "moody": {
+    "events": {
+     "ambient": "mob.moody_cow.say",
+     "death": "mob.moody_cow.death",
+     "hurt": "mob.moody_cow.hurt",
+     "step": {
+      "pitch": [
+       0.9,
+       1.1
+      ],
+      "sound": "mob.cow.step",
+      "volume": 0.65
+     }
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   }
+  }
+ },
+ "volume": 1.0
+}

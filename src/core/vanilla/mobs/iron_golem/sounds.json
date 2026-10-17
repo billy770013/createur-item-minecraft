@@ -1,0 +1,24 @@
+{
+ "events": {
+  "ambient": "missing.legacyref",
+  "death": "mob.irongolem.death",
+  "hurt": "mob.irongolem.hit",
+  "irongolem.crack": "mob.irongolem.crack",
+  "irongolem.repair": "mob.irongolem.repair",
+  "step": {
+   "pitch": 1.0,
+   "sound": "mob.irongolem.walk",
+   "volume": 1.0
+  },
+  "throw": {
+   "pitch": 1.0,
+   "sound": "mob.irongolem.throw",
+   "volume": 1.0
+  }
+ },
+ "pitch": [
+  0.8,
+  1.0
+ ],
+ "volume": 1.0
+}

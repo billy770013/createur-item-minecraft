@@ -1,0 +1,18 @@
+{
+ "events": {
+  "ambient": "mob.endermen.idle",
+  "death": "mob.endermen.death",
+  "hurt": "mob.endermen.hit",
+  "mad": "mob.endermen.scream",
+  "stare": {
+   "pitch": 1.0,
+   "sound": "mob.endermen.stare",
+   "volume": 1.0
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

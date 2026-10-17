@@ -1,0 +1,1 @@
+{"base": "iron_golem", "nom": "Golem de fer", "tw": 128, "th": 128, "geo": true, "health": 100, "speed": 0.25, "damage": null, "spawn": false, "hostile": true}

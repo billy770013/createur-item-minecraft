@@ -1,0 +1,31 @@
+{
+ "events": {
+  "ambient": "mob.witch.ambient",
+  "ambient.in.raid": {
+   "pitch": [
+    0.8,
+    1.2
+   ],
+   "sound": "mob.witch.ambient",
+   "volume": 3.0
+  },
+  "celebrate": "mob.witch.celebrate",
+  "death": "mob.witch.death",
+  "drink": {
+   "pitch": 1.0,
+   "sound": "mob.witch.drink",
+   "volume": 1.0
+  },
+  "hurt": "mob.witch.hurt",
+  "throw": {
+   "pitch": 1.0,
+   "sound": "mob.witch.throw",
+   "volume": 1.0
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

@@ -1,0 +1,110 @@
+{
+ "__molang_version": 13,
+ "events": {
+  "ambient": "mob.pig.say",
+  "boost": "mob.pig.boost",
+  "death": "mob.pig.death",
+  "death.to.zombie": "mob.pig.death",
+  "eat": "mob.pig.eat",
+  "hurt": "mob.pig.say",
+  "step": "mob.pig.step",
+  "unsaddle": "mob.unsaddle"
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "variants": {
+  "key": "query.is_baby ? 'baby' : query.property('minecraft:sound_variant')",
+  "map": {
+   "baby": {
+    "events": {
+     "ambient": {
+      "pitch": 0.5,
+      "sound": "mob.baby_pig.ambient",
+      "volume": 0.5
+     },
+     "ambient.baby": {
+      "pitch": 0.5,
+      "sound": "mob.baby_pig.ambient",
+      "volume": 0.5
+     },
+     "boost": {
+      "pitch": 1,
+      "sound": "mob.pig.boost",
+      "volume": 1.0
+     },
+     "death": {
+      "pitch": 0.5,
+      "sound": "mob.baby_pig.death",
+      "volume": 1.0
+     },
+     "death.to.zombie": {
+      "pitch": -0.05,
+      "sound": "mob.baby_pig.death",
+      "volume": 1.0
+     },
+     "eat": {
+      "pitch": 1,
+      "sound": "mob.baby_pig.eat",
+      "volume": 1.0
+     },
+     "hurt": {
+      "pitch": 0.5,
+      "sound": "mob.baby_pig.hurt",
+      "volume": 1.0
+     },
+     "step": {
+      "pitch": 0.5,
+      "sound": "mob.baby_pig.step",
+      "volume": 0.3
+     }
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "big": {
+    "events": {
+     "ambient": "mob.big_pig.say",
+     "boost": "mob.pig.boost",
+     "death": "mob.big_pig.death",
+     "death.to.zombie": "mob.big_pig.death",
+     "eat": "mob.big_pig.eat",
+     "hurt": "mob.big_pig.hurt",
+     "step": "mob.pig.step"
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "default": {
+    "events": {
+     "ambient": "mob.pig.say",
+     "death": {
+      "pitch": 0.9,
+      "sound": "mob.pig.death",
+      "volume": 0.5
+     },
+     "eat": "mob.pig.eat",
+     "hurt": "mob.pig.say",
+     "step": "mob.pig.step"
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "mini": {
+    "events": {
+     "ambient": "mob.mini_pig.say",
+     "boost": "mob.pig.boost",
+     "death": "mob.mini_pig.death",
+     "death.to.zombie": "mob.mini_pig.death",
+     "eat": "mob.mini_pig.eat",
+     "hurt": "mob.mini_pig.hurt",
+     "step": "mob.pig.step"
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   }
+  }
+ },
+ "volume": 1.0
+}

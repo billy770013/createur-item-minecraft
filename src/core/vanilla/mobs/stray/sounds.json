@@ -1,0 +1,17 @@
+{
+ "events": {
+  "ambient": "mob.stray.ambient",
+  "death": "mob.stray.death",
+  "hurt": "mob.stray.hurt",
+  "step": {
+   "pitch": 1.0,
+   "sound": "mob.stray.step",
+   "volume": 1.0
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

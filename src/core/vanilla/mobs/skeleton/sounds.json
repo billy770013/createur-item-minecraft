@@ -1,0 +1,20 @@
+{
+ "events": {
+  "ambient": "mob.skeleton.say",
+  "death": "mob.skeleton.death",
+  "hurt": {
+   "sound": "mob.skeleton.hurt",
+   "volume": 0.7
+  },
+  "step": {
+   "pitch": 1.0,
+   "sound": "mob.skeleton.step",
+   "volume": 1.0
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

@@ -1,0 +1,16 @@
+{
+ "events": {
+  "death": "mob.creeper.death",
+  "fuse": {
+   "pitch": 0.5,
+   "sound": "random.fuse",
+   "volume": 1.0
+  },
+  "hurt": "mob.creeper.say"
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

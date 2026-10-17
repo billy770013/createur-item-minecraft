@@ -1,0 +1,13 @@
+{
+ "events": {
+  "ambient": "mob.blaze.breathe",
+  "death": "mob.blaze.death",
+  "hurt": "mob.blaze.hit",
+  "shoot": "mob.blaze.shoot"
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 2.0
+}

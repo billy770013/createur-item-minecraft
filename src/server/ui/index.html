@@ -1,0 +1,1537 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Minecraft Creator Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="vendor/three.min.js"></script>
+<style>
+  /* =====================================================================
+     MINECRAFT CREATOR STUDIO — theme "Ore UI" fait main
+     Fonds = vraies textures Mojang (assets/), contours en pixels (box-shadow),
+     boutons Bedrock a levre, polices : Pixelify Sans (titres) + Rubik (texte).
+     ===================================================================== */
+  :root{
+    --px:2px;                                   /* epaisseur d'un "pixel" d'interface */
+    --ink:#0c0c0e;                              /* contour noir des panneaux */
+    --bg:#141418; --panel:#2a2b2f; --panel2:#35363b; --panel3:#1d1e21; --sunk:#111214;
+    --line:#46474c; --line2:#5c5d63;
+    --txt:#f1f0ea; --dim:#a9a9a3; --faint:#74746f;
+    --green:#6cc349; --green2:#3c8527; --greenLip:#1f4f14; --greenHi:#8fdc6a;
+    --mint:#6cc349;                             /* compat : ancien accent */
+    --gold:#f2c94c; --oak:#c9a466; --diamond:#5fe0d0; --amethyst:#b48cf0;
+    --red:#e5534b; --redLip:#7c1e1a; --yellow:#f2c94c; --orange:#f2a541; --blue:#6fb8f2; --purple:#b48cf0;
+    --hiTL:rgba(255,255,255,.10); --hiBR:rgba(0,0,0,.42);
+    --font:"Rubik",system-ui,"Segoe UI",sans-serif;
+    --pixel:"Pixelify Sans","Rubik",system-ui,sans-serif;
+    --mono:"JetBrains Mono","Cascadia Code",Consolas,monospace;
+    --ease:cubic-bezier(.2,.8,.2,1);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--green2);color:#fff}
+  body{margin:0;color:var(--txt);font:14px/1.5 var(--font);height:100vh;overflow:hidden;
+    background:
+      radial-gradient(120% 80% at 70% -10%,rgba(95,224,208,.07),transparent 55%),
+      radial-gradient(90% 70% at 0% 110%,rgba(108,195,73,.08),transparent 60%),
+      linear-gradient(rgba(14,14,18,.86),rgba(10,10,13,.93)),
+      url(assets/deepslate.png) 0 0/64px 64px;
+    image-rendering:pixelated}
+  img{image-rendering:pixelated}
+
+  /* ---------- barres de defilement en pixels ---------- */
+  ::-webkit-scrollbar{width:12px;height:12px}
+  ::-webkit-scrollbar-track{background:var(--sunk)}
+  ::-webkit-scrollbar-thumb{background:var(--line);border:2px solid var(--sunk);box-shadow:inset 2px 2px 0 rgba(255,255,255,.12)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--line2)}
+  *{scrollbar-color:var(--line) var(--sunk)}
+
+  /* ---------- boutons Bedrock (levre en bas, s'enfonce au clic) ---------- */
+  button{font:500 14px/1 var(--pixel);letter-spacing:.2px;cursor:pointer;color:var(--txt);
+    background:#4a4b50;border:var(--px) solid var(--ink);border-radius:0;padding:9px 14px 12px;
+    box-shadow:inset 0 -4px 0 #2d2e31,inset 2px 2px 0 rgba(255,255,255,.16);
+    text-shadow:1px 1px 0 rgba(0,0,0,.45);transition:background .12s,transform .06s,box-shadow .06s;
+    display:inline-flex;align-items:center;justify-content:center;gap:7px;position:relative;user-select:none}
+  button:hover{background:#5b5c62}
+  button:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 #2d2e31,inset 2px 2px 0 rgba(255,255,255,.10)}
+  button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  button.primary{background:var(--green2);color:#fff;font-weight:600;
+    box-shadow:inset 0 -4px 0 var(--greenLip),inset 2px 2px 0 rgba(255,255,255,.28)}
+  button.primary:hover{background:#4a9e32}
+  button.primary:active{box-shadow:inset 0 -2px 0 var(--greenLip),inset 2px 2px 0 rgba(255,255,255,.18)}
+  button.danger{background:#a8322c;color:#fff;box-shadow:inset 0 -4px 0 var(--redLip),inset 2px 2px 0 rgba(255,255,255,.2)}
+  button.danger:hover{background:#c23b34}
+  button:disabled{filter:grayscale(.9) brightness(.7);cursor:not-allowed;transform:none}
+  button .mci{width:18px;height:18px;margin:-3px 0}
+
+  /* ---------- champs (comme le chat / les panneaux du jeu) ---------- */
+  input,select,textarea{font:400 14px/1.35 var(--font);color:var(--txt);width:100%;
+    background:var(--sunk);border:var(--px) solid #55565b;border-radius:0;padding:9px 11px;
+    box-shadow:inset 2px 2px 0 rgba(0,0,0,.55);transition:border-color .12s,box-shadow .12s}
+  input::placeholder,textarea::placeholder{color:var(--faint)}
+  input:hover,select:hover,textarea:hover{border-color:#6e6f75}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);box-shadow:inset 2px 2px 0 rgba(0,0,0,.55),0 0 0 3px rgba(108,195,73,.18)}
+  select{appearance:none;-webkit-appearance:none;padding-right:34px;cursor:pointer;
+    background:var(--sunk) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' shape-rendering='crispEdges'%3E%3Cpath fill='%23cfcfc9' d='M0 0h2v2H0zM2 2h2v2H2zM4 4h4v2H4zM8 2h2v2H8zM10 0h2v2h-2zM6 6h0z'/%3E%3Crect x='4' y='6' width='4' height='2' fill='%23cfcfc9'/%3E%3C/svg%3E") no-repeat right 12px center}
+  select option{background:#1d1e21;color:var(--txt)}
+  input[type=color]{padding:3px;height:40px;cursor:pointer}
+  input[type=file]{padding:7px;font-size:12px;cursor:pointer}
+  input[type=file]::file-selector-button{font:500 12px var(--pixel);color:var(--txt);background:#4a4b50;border:2px solid var(--ink);padding:5px 10px;margin-right:10px;cursor:pointer;box-shadow:inset 0 -3px 0 #2d2e31}
+  input[type=range]{padding:0;border:none;box-shadow:none;background:transparent;accent-color:var(--green)}
+  input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px!important;height:18px;padding:0;flex:none;margin:0 6px 0 0;vertical-align:-4px;cursor:pointer;
+    background:var(--sunk);border:2px solid #6e6f75;box-shadow:inset 2px 2px 0 rgba(0,0,0,.5)}
+  input[type=checkbox]:checked{background:var(--green2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' shape-rendering='crispEdges'%3E%3Cpath fill='%23fff' d='M8 0h2v2H8zM6 2h2v2H6zM4 4h2v2H4zM2 6h2v2H2zM0 4h2v2H0z'/%3E%3C/svg%3E") no-repeat center;border-color:var(--greenHi)}
+  label{display:block;font:600 12px/1.35 var(--font);letter-spacing:.2px;color:var(--oak);margin:13px 0 6px}
+  label:has(input[type=checkbox]){color:var(--txt);font-weight:500;font-size:13px;cursor:pointer}
+  .row{display:flex;gap:12px}.row>*{flex:1;min-width:0}
+
+  /* ---------- structure ---------- */
+  .app{display:flex;height:100vh}
+
+  /* menu lateral : planches de chene noir + bordure en buche */
+  .side{width:252px;flex-shrink:0;display:flex;flex-direction:column;position:relative;z-index:2;
+    background:linear-gradient(180deg,rgba(18,12,7,.55),rgba(12,8,5,.82)),url(assets/planks_dark.png) 0 0/64px 64px;
+    box-shadow:4px 0 0 rgba(0,0,0,.35)}
+  .side::after{content:"";position:absolute;top:0;right:-10px;width:10px;height:100%;
+    background:linear-gradient(90deg,rgba(0,0,0,.25),rgba(0,0,0,.55)),url(assets/log_dark.png) 0 0/32px 32px;
+    box-shadow:inset 2px 0 0 rgba(255,255,255,.05),3px 0 0 rgba(0,0,0,.4)}
+  .brand{padding:22px 18px 36px;display:flex;align-items:center;gap:14px;position:relative}
+  .brand b{display:block;font:700 19px/1 var(--pixel);letter-spacing:.3px;color:#fff;text-shadow:2px 2px 0 #3a2a17}
+  .brand small{display:block;font:500 10px/1 var(--pixel);letter-spacing:2px;color:var(--oak);margin-top:6px;opacity:.85}
+  .splash{position:absolute;left:78px;top:74px;font:600 12px/1 var(--pixel);color:#ffff55;text-shadow:2px 2px 0 #3f3f15;
+    transform:rotate(-7deg);transform-origin:left center;white-space:nowrap;pointer-events:none;animation:splash 1.6s ease-in-out infinite}
+  @keyframes splash{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(-7deg) scale(1.09)}}
+  /* logo : vrai bloc d'herbe en 3D */
+  .cube{--s:34px;width:var(--s);height:var(--s);position:relative;transform-style:preserve-3d;flex:none;
+    transform:rotateX(-28deg) rotateY(45deg);margin:4px 6px 4px 4px;transition:transform .6s var(--ease)}
+  .brand:hover .cube{transform:rotateX(-28deg) rotateY(405deg)}
+  .cube i{position:absolute;inset:0;background-size:100% 100%;image-rendering:pixelated;backface-visibility:hidden}
+  .cube .t{background-image:url(assets/grass_top.png);transform:rotateX(90deg) translateZ(calc(var(--s)/2))}
+  .cube .f{background-image:url(assets/grass_side.png);transform:translateZ(calc(var(--s)/2));filter:brightness(.92)}
+  .cube .r{background-image:url(assets/grass_side.png);transform:rotateY(90deg) translateZ(calc(var(--s)/2));filter:brightness(.72)}
+
+  .nav{padding:6px 12px 16px;overflow:auto;flex:1}
+  .nav .grp{font:600 11px/1 var(--pixel);letter-spacing:2px;text-transform:uppercase;color:var(--oak);opacity:.8;padding:18px 8px 8px;display:flex;align-items:center;gap:8px}
+  .nav .grp::after{content:"";flex:1;height:2px;background:linear-gradient(90deg,rgba(201,164,102,.35),transparent)}
+  .nav a{display:flex;align-items:center;gap:12px;padding:5px 8px;margin-bottom:3px;cursor:pointer;
+    color:#d9d4c7;text-decoration:none;font:500 14px/1.2 var(--font);border:2px solid transparent;transition:background .15s,color .15s}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav a:hover .ico img{transform:translateY(-2px) scale(1.08)}
+  .nav .ico{width:36px;height:36px;flex:none;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.42);border:2px solid #1a120a;box-shadow:inset 2px 2px 0 rgba(0,0,0,.45),inset -2px -2px 0 rgba(255,255,255,.07)}
+  .nav .ico img{width:24px;height:24px;transition:transform .18s var(--ease)}
+  .nav a.on{color:#fff;background:linear-gradient(90deg,rgba(108,195,73,.22),rgba(108,195,73,.04));border-color:rgba(108,195,73,.35)}
+  .nav a.on .ico{border-color:#fff;box-shadow:0 0 0 2px #1a120a,inset 2px 2px 0 rgba(0,0,0,.35),0 0 14px rgba(255,255,255,.18)}
+  .nav a.soon{opacity:.38;cursor:default}.nav a.soon:hover{background:none}
+  .navfoot{padding:12px 18px 16px;font:500 11px/1.4 var(--pixel);color:rgba(201,164,102,.55);letter-spacing:.5px}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+  /* spores qui flottent (desactivees si "moins d'animations") */
+  .main::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.55;
+    background-image:radial-gradient(2px 2px at 12% 20%,rgba(95,224,208,.55),transparent 60%),radial-gradient(2px 2px at 78% 35%,rgba(108,195,73,.45),transparent 60%),
+      radial-gradient(2px 2px at 40% 70%,rgba(180,140,240,.45),transparent 60%),radial-gradient(2px 2px at 88% 82%,rgba(95,224,208,.4),transparent 60%),
+      radial-gradient(2px 2px at 25% 92%,rgba(242,201,76,.35),transparent 60%),radial-gradient(2px 2px at 60% 12%,rgba(255,255,255,.3),transparent 60%);
+    background-size:100% 100%;animation:spores 26s linear infinite}
+  @keyframes spores{from{transform:translateY(0)}to{transform:translateY(-60px)}}
+  .top{height:66px;flex:none;display:flex;align-items:center;gap:12px;padding:0 26px 6px 30px;position:relative;z-index:3;
+    background:linear-gradient(rgba(20,20,24,.78),rgba(20,20,24,.9)),url(assets/stone.png) 0 0/64px 64px}
+  .top::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:8px;
+    background:url(assets/grass_side.png) 0 0/32px 32px;image-rendering:pixelated;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+  .top .title{font:700 21px/1 var(--pixel);color:#fff;text-shadow:2px 2px 0 #26272b;letter-spacing:.3px}
+  .top .sp{flex:1}
+  .pill{font:500 12px/1 var(--pixel);letter-spacing:.3px;color:#e6e3da;padding:7px 11px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw;
+    background:rgba(0,0,0,.45);border:2px solid var(--ink);box-shadow:inset 2px 2px 0 rgba(255,255,255,.06)}
+  .dot,.dot.ok,.dot.off{padding:0;border:0;margin-top:0}.dot::before{display:none!important}
+  .dot{width:10px;height:10px;display:inline-block;margin:0;background:var(--faint);box-shadow:inset -2px -2px 0 rgba(0,0,0,.35)}
+  .dot.ok{background:var(--green);box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),0 0 10px rgba(108,195,73,.8);animation:pulse 2.4s ease-in-out infinite}
+  .dot.off{background:var(--red);box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),0 0 10px rgba(229,83,75,.7)}
+  @keyframes pulse{50%{box-shadow:inset -2px -2px 0 rgba(0,0,0,.3),0 0 3px rgba(108,195,73,.4)}}
+  .content{flex:1;overflow:auto;padding:30px 30px 40px;position:relative;z-index:1}
+
+  /* ---------- panneaux ---------- */
+  .card{position:relative;margin-bottom:18px;padding:18px 18px 18px;
+    background:linear-gradient(180deg,rgba(255,255,255,.035),transparent 40%),var(--panel);
+    border:var(--px) solid var(--ink);
+    box-shadow:inset 2px 2px 0 var(--hiTL),inset -2px -2px 0 var(--hiBR),0 6px 0 rgba(0,0,0,.28),0 14px 30px rgba(0,0,0,.25)}
+  .card h3{margin:-2px 0 14px;padding-bottom:11px;font:600 16px/1.2 var(--pixel);letter-spacing:.3px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.45);
+    display:flex;align-items:center;gap:9px;border-bottom:2px solid rgba(0,0,0,.35);box-shadow:0 2px 0 rgba(255,255,255,.04)}
+  .card h3 .mci{width:22px;height:22px}
+  .card .card{background:var(--panel3);box-shadow:inset 2px 2px 0 rgba(0,0,0,.35),inset -2px -2px 0 rgba(255,255,255,.04)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid2>*,.grid3>*{min-width:0}
+  .grid3{display:grid;grid-template-columns:280px minmax(0,1fr) 320px;gap:18px;align-items:start}
+  @media(max-width:1180px){.grid3{grid-template-columns:260px minmax(0,1fr)}.grid3>:last-child{grid-column:1/-1}}
+  @media(max-width:980px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  /* entree des ecrans (seulement quand on change de page) */
+  .content.enter .card{animation:rise .38s var(--ease) both}
+  .content.enter .grid2>:nth-child(2) .card,.content.enter .grid3>:nth-child(2) .card{animation-delay:.05s}
+  .content.enter .grid3>:nth-child(3) .card{animation-delay:.1s}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---------- listes (comme des cases d'inventaire) ---------- */
+  .list .it{display:flex;align-items:center;gap:11px;padding:9px 11px;margin-bottom:8px;cursor:pointer;
+    background:var(--panel3);border:var(--px) solid var(--ink);
+    box-shadow:inset 2px 2px 0 rgba(255,255,255,.05),inset -2px -2px 0 rgba(0,0,0,.35);transition:background .14s,transform .14s var(--ease),box-shadow .14s}
+  .list .it:hover{background:#26272b;transform:translateX(3px)}
+  .list .it.on{background:linear-gradient(90deg,rgba(108,195,73,.2),rgba(108,195,73,.04)),var(--panel3);
+    box-shadow:inset 0 0 0 2px var(--green),0 0 16px rgba(108,195,73,.15)}
+  .list .it b{font-weight:600}
+  .muted{color:var(--dim);font-size:12.5px}
+  code{font:12px var(--mono);color:#d8f3c8;background:rgba(0,0,0,.35);padding:1px 5px;border:1px solid rgba(255,255,255,.06)}
+  .tag{font:600 10px/1 var(--pixel);letter-spacing:.6px;text-transform:uppercase;padding:5px 7px;color:#d9d6cc;white-space:nowrap;
+    background:#18191b;border:2px solid #000;box-shadow:inset 1px 1px 0 rgba(255,255,255,.08)}
+  .warn,.ok,.err{position:relative;padding:10px 12px 10px 38px;font-size:12.5px;line-height:1.45;margin-top:8px;border:var(--px) solid;
+    box-shadow:inset 2px 2px 0 rgba(255,255,255,.04)}
+  .warn::before,.ok::before,.err::before{content:"";position:absolute;left:10px;top:9px;width:18px;height:18px;background-size:100% 100%;image-rendering:pixelated}
+  .ok{background:rgba(60,133,39,.14);border-color:#2f6b1f;color:#b6ec9c}.ok::before{background-image:url(mcicons/emerald.png)}
+  .warn{background:rgba(242,169,65,.10);border-color:#8a5d1a;color:#ffd58a}.warn::before{background-image:url(mcicons/blaze_powder.png)}
+  .err{background:rgba(229,83,75,.12);border-color:#7c1e1a;color:#ffb0a9}.err::before{background-image:url(mcicons/barrier.png)}
+  pre{background:#0b0b0d;border:var(--px) solid #000;box-shadow:inset 2px 2px 0 rgba(0,0,0,.6),inset -2px -2px 0 rgba(255,255,255,.04);
+    padding:14px;overflow:auto;font:12px/1.6 var(--mono);color:#cfe8c2;margin:0}
+  .empty{color:var(--dim);text-align:center;padding:44px 20px;font:500 14px var(--pixel);letter-spacing:.3px}
+  .empty::before{content:"";display:block;width:48px;height:48px;margin:0 auto 14px;opacity:.55;
+    background:url(mcicons/bundle.png) center/100% no-repeat;image-rendering:pixelated;animation:bob 3s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  .mci{width:20px;height:20px;vertical-align:-4px;image-rendering:pixelated;display:inline-block;flex:none}
+
+  /* ---------- apercus façon inventaire (couleurs du vrai jeu) ---------- */
+  .slot{width:72px;height:72px;background:#8b8b8b;border:3px solid #373737;border-right-color:#fff;border-bottom-color:#fff;image-rendering:pixelated;display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+  .slot img{width:56px;height:56px;image-rendering:pixelated}
+  .slot .cnt{position:absolute;right:3px;bottom:0;color:#fff;font:700 16px var(--pixel);text-shadow:2px 2px 0 #3f3f3f}
+  .mcname{font:500 15px var(--pixel);background:#100010;border:2px solid #25015b;box-shadow:inset 0 0 0 2px #120022;color:#fff;padding:6px 11px;display:inline-block;margin-top:8px;text-shadow:2px 2px 0 #3f3f3f}
+  .craft{display:inline-grid;grid-template-columns:repeat(3,56px);gap:4px;padding:10px;background:#c6c6c6;border:2px solid #000;
+    box-shadow:inset 3px 3px 0 #fff,inset -3px -3px 0 #555}
+  .craft .c{width:56px;height:56px;background:#8b8b8b;border:2px solid #373737;border-right-color:#fff;border-bottom-color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .1s}
+  .craft .c:hover{background:#a5a5a5;outline:none}
+  .craft .cico img,.craft .cico span{width:40px;height:40px;image-rendering:pixelated}
+  canvas.vp3d,#view3d{background:radial-gradient(70% 60% at 50% 40%,#2a3a33,#0e1412 75%);border:var(--px) solid #000;box-shadow:inset 2px 2px 0 rgba(0,0,0,.6),inset -2px -2px 0 rgba(255,255,255,.05)}
+
+  /* ---------- notification façon "Progrès realise !" ---------- */
+  .toast{position:fixed;top:84px;right:22px;z-index:80;min-width:250px;max-width:min(420px,90vw);padding:11px 14px 11px 54px;
+    background:#212124;border:2px solid #000;box-shadow:inset 2px 2px 0 #4b4b50,inset -2px -2px 0 #111,0 10px 30px rgba(0,0,0,.5);
+    transform:translateX(calc(100% + 40px));opacity:0;transition:transform .35s var(--ease),opacity .2s;pointer-events:none}
+  .toast::before{content:"";position:absolute;left:12px;top:50%;width:30px;height:30px;margin-top:-15px;background:url(mcicons/nether_star.png) center/100%;image-rendering:pixelated}
+  .toast b{display:block;font:600 13px/1.2 var(--pixel);color:#ffff55;text-shadow:2px 2px 0 #3f3f15;margin-bottom:3px}
+  .toast span{display:block;font-size:13px;color:#fff}
+  .toast.bad::before{background-image:url(mcicons/barrier.png)}
+  .toast.bad b{color:#ff6b62;text-shadow:2px 2px 0 #3f1513}
+  .toast.show{transform:none;opacity:1}
+
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;margin:0 6px 6px 0;font-size:12px;background:var(--panel3);border:2px solid #000;box-shadow:inset 1px 1px 0 rgba(255,255,255,.07)}
+  .chip button{padding:0 4px;border:none;background:none;color:var(--red);box-shadow:none}
+
+  /* ---------- fenetres (modales) ---------- */
+  .modal{position:fixed;inset:0;background:rgba(6,6,8,.72);backdrop-filter:blur(3px);z-index:60;display:none;align-items:center;justify-content:center;padding:14px}
+  .modal.show{display:flex;animation:fade .2s ease-out}
+  @keyframes fade{from{opacity:0}}
+  .modal .box{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.04),transparent 30%),var(--panel);border:var(--px) solid var(--ink);padding:20px;
+    max-width:min(94vw,860px);width:100%;box-shadow:inset 2px 2px 0 var(--hiTL),inset -2px -2px 0 var(--hiBR),0 8px 0 rgba(0,0,0,.35),0 30px 80px rgba(0,0,0,.6);
+    animation:pop .26s var(--ease)}
+  @keyframes pop{from{transform:translateY(12px) scale(.98);opacity:0}}
+  .modal h3{margin:0 0 14px;padding-bottom:11px;font:600 18px/1.2 var(--pixel);color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.45);border-bottom:2px solid rgba(0,0,0,.35);display:flex;align-items:center;gap:9px}
+
+  /* ---------- editeur pixel ---------- */
+  .pxwrap{display:flex;gap:20px;flex-wrap:wrap}
+  #pxcanvas{image-rendering:pixelated;background:
+     linear-gradient(45deg,#2b2c30 25%,transparent 25%),linear-gradient(-45deg,#2b2c30 25%,transparent 25%),
+     linear-gradient(45deg,transparent 75%,#2b2c30 75%),linear-gradient(-45deg,transparent 75%,#2b2c30 75%),#3a3b40;
+     background-size:32px 32px;background-position:0 0,0 16px,16px -16px,-16px 0;
+     border:2px solid #000;cursor:crosshair;touch-action:none}
+  .tools{display:flex;flex-direction:column;gap:8px;min-width:150px}
+  #pxModal .box{max-width:min(96vw,1100px);max-height:94vh;overflow:auto}
+  #pxModal .tools{flex:1 1 280px;min-width:260px;max-width:420px}
+  #pxModal #view3d{width:100%;max-width:400px;height:300px}
+  .swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+  .sw{width:100%;aspect-ratio:1;border:2px solid #000;cursor:pointer;box-shadow:inset 2px 2px 0 rgba(255,255,255,.22),inset -2px -2px 0 rgba(0,0,0,.3);transition:transform .1s}
+  .sw:hover{transform:translateY(-2px)}
+  .sw.on{outline:2px solid #fff;outline-offset:1px}
+  .tbtn{display:flex;gap:6px;flex-wrap:wrap}
+  .tbtn button{padding:7px 11px 10px;font-size:13px}
+  .tbtn button.on{background:var(--green2);color:#fff;box-shadow:inset 0 -4px 0 var(--greenLip),inset 2px 2px 0 rgba(255,255,255,.28)}
+  #view3d{width:260px;height:230px;touch-action:none}
+  #view3d.paint{cursor:crosshair}
+  #pxLeft{display:flex;flex-direction:column;gap:9px;flex:1 1 380px;min-width:0;max-width:480px}
+  #pxScroll{width:100%;height:min(58vh,440px);overflow:auto;background:#0e0f11;border:2px solid #000;box-shadow:inset 2px 2px 0 rgba(0,0,0,.6)}
+  #pxScroll canvas{display:block;margin:auto}
+  .pxbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .pxbar button{padding:6px 11px 9px}
+  .pxbar select{width:auto;max-width:100%}
+  #pxZoomVal{font:600 13px var(--pixel)}
+
+  /* ---------- selecteur d'items ---------- */
+  #pickList{background:var(--sunk);border:2px solid #000!important;border-radius:0!important;box-shadow:inset 2px 2px 0 rgba(0,0,0,.5)}
+  .pk{display:flex;align-items:center;gap:11px;padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .1s}
+  .pk:hover{background:rgba(108,195,73,.14)}
+  .pk img{width:32px;height:32px;image-rendering:pixelated;background:#8b8b8b;border:2px solid #373737;border-right-color:#fff;border-bottom-color:#fff;padding:2px}
+  .pk .ph{width:32px;height:32px;background:repeating-conic-gradient(#f700ff 0% 25%,#000 0% 50%) 50%/16px 16px;border:2px solid #373737}
+  .pk b{font-size:13px;font-weight:600}.pk code{font-size:11px;color:var(--dim);background:none;border:none;padding:0}
+  .icoimg{width:26px;height:26px;image-rendering:pixelated;vertical-align:middle}
+  .chk{display:flex;align-items:center;gap:8px;color:var(--txt);font-size:13px;cursor:pointer;margin-top:12px}
+  .chk input{width:auto}
+
+  label.btnlike{display:inline-flex;align-items:center;gap:7px;margin:0;cursor:pointer;font:600 14px/1 var(--pixel);color:#fff;letter-spacing:.2px;
+    background:var(--green2);border:2px solid var(--ink);padding:9px 14px 12px;box-shadow:inset 0 -4px 0 var(--greenLip),inset 2px 2px 0 rgba(255,255,255,.28);text-shadow:1px 1px 0 rgba(0,0,0,.45)}
+  label.btnlike:hover{background:#4a9e32}
+  /* ---------- telephone : le menu devient une barre d'objets ---------- */
+  @media(max-width:900px){
+    body{height:auto;min-height:100vh;overflow:auto}
+    .app{display:block;height:auto}
+    .side{position:fixed;left:0;right:0;bottom:0;width:auto;height:64px;z-index:40;flex-direction:row;
+      background:linear-gradient(rgba(18,12,7,.75),rgba(12,8,5,.92)),url(assets/planks_dark.png) 0 0/48px 48px;box-shadow:0 -4px 0 rgba(0,0,0,.4)}
+    .side::after{top:-8px;right:0;left:0;width:auto;height:8px;background:url(assets/log_dark.png) 0 0/24px 24px}
+    .brand,.nav .grp,.navfoot,.splash{display:none}
+    .nav{display:flex;gap:4px;padding:8px 10px;overflow-x:auto;overflow-y:hidden;align-items:center}
+    .nav a{flex:none;padding:0;margin:0;border:none;background:none!important;font-size:0;gap:0}
+    .nav .ico{width:44px;height:44px}
+    .main{min-height:100vh;padding-bottom:72px}
+    .top{height:58px;padding:0 14px 6px;position:sticky;top:0}
+    .top .title{font-size:17px}
+    .content{padding:18px 14px 26px;overflow:visible}
+    .row{flex-wrap:wrap}.row>*{min-width:140px}
+    .card{padding:14px}
+    .toast{top:auto;bottom:80px;right:12px;left:12px;max-width:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
+</style>
+<link rel="stylesheet" href="studio.css">
+<meta name="description" content="Un atelier visuel pour créer des add-ons Minecraft Bedrock : items, blocs, mobs, textures et skins.">
+</head>
+<body>
+<a class="skip-link" href="#content">Aller au contenu</a>
+<button class="mobile-scrim" id="menuScrim" aria-label="Fermer le menu" tabindex="-1"></button>
+<div class="app">
+  <aside class="side" aria-label="Navigation du studio" id="studioSidebar">
+    <div class="brand"><div class="cube" aria-hidden="true"><i class="t"></i><i class="f"></i><i class="r"></i></div><div><b>Creator Studio</b><small>MINECRAFT · BEDROCK</small></div><span class="splash" id="splash">Votre atelier créatif !</span></div>
+    <nav class="nav" id="nav" aria-label="Outils de création">
+      <div class="grp">Projet</div>
+      <a data-view="projects" class="on"><span class="ico"><img src="mcicons/chest.png" alt=""></span> Projets</a>
+      <a data-view="items"><span class="ico"><img src="mcicons/diamond_sword.png" alt=""></span> Items</a>
+      <a data-view="recipes"><span class="ico"><img src="mcicons/crafting_table.png" alt=""></span> Recettes</a>
+      <a data-view="deploy"><span class="ico"><img src="mcicons/ender_eye.png" alt=""></span> Exporter &amp; installer</a>
+      <a data-view="history"><span class="ico"><img src="mcicons/clock.png" alt=""></span> Historique</a>
+      <div class="grp">Contenu</div>
+      <a data-view="blocks"><span class="ico"><img src="mcicons/stone_bricks.png" alt=""></span> Blocs</a>
+      <a data-view="mobs"><span class="ico"><img src="mcicons/zombie_spawn_egg.png" alt=""></span> Mobs &amp; entités</a>
+      <a data-view="loot"><span class="ico"><img src="mcicons/bundle.png" alt=""></span> Loot tables</a>
+      <a data-view="textures"><span class="ico"><img src="mcicons/painting.png" alt=""></span> Textures</a>
+      <a data-view="sounds"><span class="ico"><img src="mcicons/jukebox.png" alt=""></span> Sons</a>
+      <a data-view="skins"><span class="ico"><img src="mcicons/armor_stand.png" alt=""></span> Skins</a>
+    </nav>
+    <div class="navfoot"><strong>✦ Un monde à inventer.</strong><small>Creator Studio · Minecraft Bedrock</small></div>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <button id="menuToggle" class="iconbutton menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="studioSidebar">☰</button><span class="crumb">Espace de création</span><span class="title" id="topTitle">Projets</span>
+      <span class="pill" id="projPill" style="display:none"></span>
+      <div class="sp"></div><button id="commandButton" class="command-trigger" aria-label="Rechercher un outil">⌕ Rechercher un outil <kbd>Ctrl K</kbd></button><button class="iconbutton" id="helpButton" aria-label="Guide de démarrage" title="Guide de démarrage">?</button><button class="iconbutton" id="themeButton" aria-label="Changer de thème">☼</button>
+      <span class="pill"><span class="dot" id="srvDot"></span><span id="srvTxt">serveur…</span></span>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Sélecteur d'ingrédient (liste de tous les items Minecraft) -->
+<div class="modal" id="pickModal">
+  <div class="box" style="max-width:560px">
+    <h3 id="pickTitle">Choisir un item</h3>
+    <input id="pickSearch" placeholder="🔎 Rechercher (nom français ou identifiant)…" autocomplete="off">
+    <div id="pickList" style="margin-top:10px;max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button id="pickVide" style="flex:1">Vider la case</button>
+      <button id="pickClose">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Éditeur de texture pixel par pixel -->
+<div class="modal" id="pxModal">
+  <div class="box">
+    <h3 id="pxTitle">🎨 Dessiner la texture</h3>
+    <div class="pxwrap">
+      <div id="pxLeft">
+        <div class="pxbar tbtn" id="pxModeBar"><button data-m="flat" class="on">🗺️ Texture entière</button><button data-m="face">🧩 Par face</button></div>
+        <div id="pxFaceBar" style="display:none">
+          <div class="pxbar"><span class="muted">Partie</span><select id="pxPart"></select></div>
+          <div class="pxbar tbtn" id="pxFaces" style="margin-top:6px"></div>
+        </div>
+        <div id="pxScroll"><canvas id="pxcanvas" width="512" height="512"></canvas></div>
+        <div class="pxbar">
+          <span class="muted">Zoom</span><button id="pxZoomOut" type="button">−</button><b id="pxZoomVal" style="min-width:44px;text-align:center">100%</b><button id="pxZoomIn" type="button">+</button>
+          <span class="muted" style="margin-left:10px">Pinceau</span>
+          <span class="tbtn" id="pxBrush"><button data-b="1" class="on" type="button">1</button><button data-b="2" type="button">2</button><button data-b="3" type="button">3</button><button data-b="4" type="button">4</button></span>
+        </div>
+        <div class="muted" id="pxHint">Molette sur le dessin = zoom.</div>
+      </div>
+      <div class="tools">
+        <label style="margin-top:0">Taille</label>
+        <select id="pxSize"><option value="16">16 × 16</option><option value="32">32 × 32</option></select>
+        <div id="pxTplWrap"><label>Modèle de départ (base à modifier)</label>
+        <select id="pxTemplate">
+          <option value="">— vierge —</option>
+          <option value="gem">💎 Gemme</option>
+          <option value="coin">🪙 Pièce / monnaie</option>
+          <option value="ingot">🧱 Lingot</option>
+          <option value="apple">🍎 Pomme (nourriture)</option>
+          <option value="ball">🔵 Balle / sphère</option>
+          <option value="potion">⚗️ Potion</option>
+          <option value="sword">⚔️ Épée</option>
+          <option value="stick">🪵 Bâton</option>
+          <option value="heart">❤️ Cœur</option>
+          <option value="key">🗝️ Clé</option>
+          <option value="stone">🪨 Pierre (bloc)</option>
+          <option value="bricks">🧱 Briques (bloc)</option>
+          <option value="planks">🪵 Planches (bloc)</option>
+          <option value="ore">⛏️ Minerai (bloc)</option>
+        </select></div>
+        <label>Outil</label>
+        <div class="tbtn" id="pxTools">
+          <button data-t="pen" class="on">✏️ Crayon</button>
+          <button data-t="erase">🧽 Gomme</button>
+          <button data-t="fill">🪣 Pot</button>
+          <button data-t="pick">💉 Pipette</button>
+        </div>
+        <label>Couleur</label>
+        <input type="color" id="pxColor" value="#49c661" style="height:38px;padding:2px">
+        <div class="swatches" id="pxSwatches"></div>
+        <label id="pxViewLabel">Aperçu 3D (tourne tout seul)</label>
+        <canvas id="view3d"></canvas>
+        <div class="tbtn" id="pxRot" style="margin-top:4px">
+          <button data-r="-1" type="button" title="Tourner à gauche">⟲</button><button data-r="1" type="button" title="Tourner à droite">⟳</button><button data-r="0" type="button" class="on">▶ Rotation auto</button>
+        </div>
+        <div class="tbtn" style="margin-top:4px">
+          <button id="pxUndo" type="button">↩️ Annuler</button>
+          <button id="pxClear">Tout effacer</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="primary" id="pxSave" style="flex:1">💾 Enregistrer</button>
+          <button id="pxCancel">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const BASE=(location.pathname.match(/^.*\//)||['/'])[0];
+const api=async(m,u,b,raw)=>{u=BASE+u.replace(/^\//,'');const o={method:m,headers:{}};if(b&&!raw){o.headers['Content-Type']='application/json';o.body=JSON.stringify(b)}if(raw){o.body=b;o.headers['Content-Type']='application/octet-stream'}const r=await fetch(u,o);if(!r.ok){let e;try{e=(await r.json()).error}catch{e=r.statusText}throw new Error(e)}const ct=r.headers.get('content-type')||'';return ct.includes('json')?r.json():r};
+let _toastT;const toast=(m,bad)=>{const t=$('#toast');t.innerHTML='';const b=document.createElement('b');b.textContent=bad?'Oups !':'C\'est fait !';const sp=document.createElement('span');sp.textContent=m;t.append(b,sp);t.classList.toggle('bad',!!bad);t.classList.add('show');clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),3000)};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// retire les codes couleur §x pour l'affichage texte
+const noColor=s=>String(s).replace(/§./g,'');
+
+let state={view:'projects',project:null,selItem:null,selRecipe:null};
+
+async function serverStatus(){try{const s=await api('GET','/api/server/status');$('#srvDot').className='dot '+(s.active?'ok':'off');$('#srvTxt').textContent=s.active?'Serveur en ligne':'Serveur non connecté'}catch{$('#srvTxt').textContent='Statut indisponible'}}
+serverStatus();setInterval(serverStatus,15000);
+
+// navigation
+document.querySelectorAll('#nav a[data-view]').forEach(a=>a.onclick=()=>{
+  if(a.dataset.view!=='projects'&&!state.project){toast('Ouvre ou crée un projet d\'abord',true);return}
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('on'));a.classList.add('on');
+  state.view=a.dataset.view;render();
+});
+
+function setProjectPill(){const p=$('#projPill');if(state.project){p.style.display='';p.textContent='📦 '+state.project.name+' · '+state.project.namespace+' · MC '+state.project.mcVersion}else p.style.display='none'}
+
+async function save(silent){if(!state.project)return;try{state.project=await api('PUT','/api/projects/'+state.project.id,state.project);if(!silent)toast('Projet sauvegardé ✔')}catch(e){toast('Erreur sauvegarde : '+e.message,true)}}
+
+// ---------- rendu ----------
+function render(){
+  setProjectPill();
+  $('#topTitle').textContent={projects:'Projets',items:'Éditeur d\'items',recipes:'Recettes de craft',deploy:'Build & Déploiement',history:'Historique',blocks:'Blocs',mobs:'Mobs & entités',loot:'Loot tables',textures:'Textures',sounds:'Sons',skins:'Skins'}[state.view]||'';
+  const c=$('#content');
+  if(state.view==='projects')return viewProjects(c);
+  if(state.view==='items')return viewItems(c);
+  if(state.view==='recipes')return viewRecipes(c);
+  if(state.view==='deploy')return viewDeploy(c);
+  if(state.view==='history')return viewHistory(c);
+  if(state.view==='blocks')return viewBlocks(c);
+  if(state.view==='mobs')return viewMobs(c);
+  if(state.view==='loot')return viewLoot(c);
+  if(state.view==='textures')return viewTextures(c);
+  if(state.view==='sounds')return viewSounds(c);
+  if(state.view==='skins')return viewSkins(c);
+}
+
+// ---------- PROJETS ----------
+// The projects library is implemented in studio.js.
+let viewProjects;
+async function openProject(id){state.project=await api('GET','/api/projects/'+id);state.selItem=null;state.selRecipe=null;
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('on'));
+  document.querySelector('#nav a[data-view="items"]').classList.add('on');state.view='items';render();}
+
+// ---------- ITEMS ----------
+const KINDS={generic:'Objet simple',food:'Nourriture',tool:'Outil',weapon:'Arme',armor:'Armure'};
+const CATS={items:'Objets',equipment:'Équipement',nature:'Nature',construction:'Construction'};
+function newItem(){const n='item'+(state.project.items.length+1);return{id:crypto.randomUUID(),identifier:state.project.namespace+':'+n,displayName:'Nouvel item',kind:'generic',category:'items',rarity:'common',lore:[],maxStackSize:64}}
+
+function viewItems(c){
+  const p=state.project;
+  c.innerHTML=`<div class="grid3">
+    <div><div class="card"><h3>Items (${p.items.length})</h3>
+      <button class="primary" id="addItem" style="width:100%;margin-bottom:10px">➕ Nouvel item</button>
+      <div class="list" id="ilist">${p.items.map(i=>`<div class="it ${state.selItem===i.id?'on':''}" data-id="${i.id}">
+        <div class="slot" style="width:34px;height:34px;border-width:2px"><img data-tex="${i.textureKey||i.identifier.split(':')[1]}" style="width:26px;height:26px" /></div>
+        <div style="flex:1"><b>${esc(noColor(i.displayName))}</b><div class="muted">${i.identifier}</div></div>
+        <span class="tag">${KINDS[i.kind]}</span></div>`).join('')||'<div class="empty">Aucun item.</div>'}</div>
+    </div></div>
+    <div id="editor"></div>
+    <div id="preview"></div>
+  </div>`;
+  $('#addItem').onclick=async()=>{const it=newItem();p.items.push(it);state.selItem=it.id;await save(true);render()};
+  document.querySelectorAll('#ilist .it').forEach(el=>el.onclick=()=>{state.selItem=el.dataset.id;render()});
+  loadTexThumbs();
+  renderItemEditor();
+}
+
+async function loadTexThumbs(){
+  if(!state.project)return;
+  try{const {textures}=await api('GET','/api/projects/'+state.project.id+'/textures');
+    document.querySelectorAll('img[data-tex]').forEach(img=>{
+      const it=state.project.items.find(i=>(i.textureKey||i.identifier.split(':')[1])===img.dataset.tex);
+      const f=it&&it.textureFile;
+      if(f&&textures.includes(f))img.src=BASE+'api/projects/'+state.project.id+'/texture-file?file='+encodeURIComponent(f);
+      else img.src='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#000"/><rect width="8" height="8" fill="#f700ff"/><rect x="8" y="8" width="8" height="8" fill="#f700ff"/></svg>');
+    });
+  }catch{}
+}
+
+function renderItemEditor(){
+  const ed=$('#editor'),pv=$('#preview');
+  const it=state.project.items.find(i=>i.id===state.selItem);
+  if(!it){ed.innerHTML='<div class="card"><div class="empty">Sélectionne ou crée un item.</div></div>';pv.innerHTML='';return}
+  const durable=['tool','weapon','armor'].includes(it.kind);
+  ed.innerHTML=`<div class="card"><h3>Propriétés de l'item</h3>
+    <label>Identifiant (namespace:nom)</label><input id="f_id" value="${esc(it.identifier)}">
+    <label>Nom affiché en jeu (§ pour les couleurs, ex §cRouge)</label><input id="f_name" value="${esc(it.displayName)}">
+    <div class="row">
+      <div><label>Type</label><select id="f_kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${it.kind===k?'selected':''}>${v}</option>`).join('')}</select></div>
+      <div><label>Onglet créatif</label><select id="f_cat">${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${it.category===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="row">
+      <div><label>Rareté (couleur du nom)</label><select id="f_rar">${['common','uncommon','rare','epic'].map(r=>`<option ${it.rarity===r?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div><label>Pile max ${durable?'(forcé à 1)':''}</label><input id="f_stack" type="number" min="1" max="64" value="${durable?1:it.maxStackSize}" ${durable?'disabled':''}></div>
+    </div>
+    <div id="kindFields"></div>
+    <label>Options</label>
+    <label style="display:inline"><input type="checkbox" id="f_glint" ${it.foilEnchantGlint?'checked':''} style="width:auto"> Effet enchanté (glint)</label>
+    <div style="margin-top:14px">
+      <label>Texture (PNG 16×16 conseillé)</label>
+      <div class="row">
+        <button class="primary" id="drawTex" type="button">🎨 Dessiner pixel par pixel</button>
+        <label style="flex:1;margin:0"><span class="muted">ou importer un PNG</span><input type="file" id="f_tex" accept="image/png"></label>
+      </div>
+      <div class="muted" id="texInfo">${it.textureFile?('Actuelle : '+esc(it.textureFile)):'Aucune (damier par défaut en jeu)'}</div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button class="primary" id="saveItem">💾 Enregistrer</button>
+      <button id="dupItem">Dupliquer</button>
+      <button class="danger" id="delItem">Supprimer</button>
+    </div>
+  </div>`;
+  renderKindFields(it);
+  // preview
+  setupPreview(it);
+
+  const sync=()=>{
+    it.identifier=$('#f_id').value.trim();it.displayName=$('#f_name').value;
+    it.kind=$('#f_kind').value;it.category=$('#f_cat').value;it.rarity=$('#f_rar').value;
+    if(!['tool','weapon','armor'].includes(it.kind))it.maxStackSize=parseInt($('#f_stack').value)||64;
+    it.foilEnchantGlint=$('#f_glint').checked;
+    collectKindFields(it);
+  };
+  ['f_name','f_kind','f_cat','f_rar','f_stack','f_glint'].forEach(id=>{const el=$('#'+id);if(el)el.oninput=()=>{sync();if(id==='f_kind'){renderKindFields(it)}refreshPreview()}});
+  $('#f_id').oninput=()=>{sync();refreshPreview()};
+  $('#drawTex').onclick=()=>{sync();openPixelEditor(it)};
+  $('#saveItem').onclick=async()=>{sync();await save();render()};
+  $('#dupItem').onclick=async()=>{sync();const cp=JSON.parse(JSON.stringify(it));cp.id=crypto.randomUUID();cp.identifier=it.identifier+'_copie';state.project.items.push(cp);state.selItem=cp.id;await save(true);render()};
+  $('#delItem').onclick=async()=>{if(!confirm('Supprimer cet item ?'))return;state.project.items=state.project.items.filter(x=>x.id!==it.id);state.selItem=null;await save(true);render()};
+  $('#f_tex').onchange=async e=>{const file=e.target.files[0];if(!file)return;
+    const fname=(it.identifier.split(':')[1])+'.png';
+    try{await uploadImageNormalized(file,fname);
+      it.textureFile=fname;it.textureKey=it.identifier.split(':')[1];await save(true);$('#texInfo').textContent='Actuelle : '+fname;toast('Texture ajoutée ✔');setupPreview(it);loadTexThumbs()}catch(err){toast(err.message,true)}};
+}
+
+function renderKindFields(it){
+  const box=$('#kindFields');if(!box)return;let h='';
+  if(it.kind==='food')h=`<div class="row">
+    <div><label>Nutrition (points)</label><input id="k_nut" type="number" min="0" max="20" value="${it.nutrition??4}"></div>
+    <div><label>Saturation</label><input id="k_sat" type="number" step="0.1" min="0" max="20" value="${it.saturation??0.6}"></div></div>
+    <label style="display:inline"><input type="checkbox" id="k_always" ${it.canAlwaysEat?'checked':''} style="width:auto"> Mangeable même rassasié</label>`;
+  if(it.kind==='tool'||it.kind==='weapon')h=`<div class="row">
+    <div><label>Dégâts d'attaque</label><input id="k_dmg" type="number" min="0" max="1000" value="${it.attackDamage??5}"></div>
+    <div><label>Durabilité</label><input id="k_dur" type="number" min="1" max="10000" value="${it.durability??250}"></div></div>`;
+  if(it.kind==='tool')h+=`<div class="row">
+    <div><label>Type d'outil</label><select id="k_tool">
+      ${[['none','Aucun (objet simple)'],['pickaxe','⛏️ Pioche'],['axe','🪓 Hache'],['shovel','🥄 Pelle'],['hoe','🌾 Houe']].map(([v,l])=>`<option value="${v}" ${(it.toolType||'none')===v?'selected':''}>${l}</option>`).join('')}</select></div>
+    <div><label>Vitesse de minage <span class="muted">(diamant = 8)</span></label><input id="k_speed" type="number" min="1" max="100" step="1" value="${it.miningSpeed??8}"></div></div>`;
+  if(it.kind==='armor')h=`<div class="row">
+    <div><label>Emplacement</label><select id="k_slot">
+      <option value="slot.armor.head" ${it.armorSlot==='slot.armor.head'?'selected':''}>Casque</option>
+      <option value="slot.armor.chest" ${it.armorSlot==='slot.armor.chest'?'selected':''}>Plastron</option>
+      <option value="slot.armor.legs" ${it.armorSlot==='slot.armor.legs'?'selected':''}>Jambières</option>
+      <option value="slot.armor.feet" ${it.armorSlot==='slot.armor.feet'?'selected':''}>Bottes</option></select></div>
+    <div><label>Protection</label><input id="k_prot" type="number" min="0" max="30" value="${it.protection??2}"></div></div>
+    <div><label>Durabilité</label><input id="k_dur" type="number" min="1" max="10000" value="${it.durability??300}"></div>`;
+  h+=powersHtml(it);
+  box.innerHTML=h;
+  box.querySelectorAll('input,select').forEach(el=>el.oninput=el.onchange=()=>{const t=it.toolType;collectKindFields(it);refreshPreview();if(el.id==='k_tool'&&t!==it.toolType)renderKindFields(it)});
+}
+// ----- pouvoirs speciaux (script genere : BP/scripts/main.js) -----
+const EFF_BONS=[['speed','Vitesse'],['haste','Célérité (mine vite)'],['strength','Force'],['regeneration','Régénération'],['resistance','Résistance'],
+  ['fire_resistance','Résistance au feu'],['water_breathing','Respiration aquatique'],['night_vision','Vision nocturne'],['jump_boost','Saut amélioré'],
+  ['invisibility','Invisibilité'],['slow_falling','Chute lente'],['health_boost','Bonus de vie'],['absorption','Absorption'],['saturation','Saturation']];
+const EFF_MAUVAIS=[['poison','Poison'],['wither','Wither'],['slowness','Lenteur'],['weakness','Faiblesse'],['blindness','Cécité'],['nausea','Nausée'],
+  ['levitation','Lévitation'],['hunger','Faim'],['mining_fatigue','Fatigue de minage'],['darkness','Obscurité'],['instant_damage','Dégâts instantanés']];
+const pSel=(id,lab,opts,val)=>`<div><label>${lab}</label><select id="${id}">${opts.map(([v,l])=>`<option value="${v}" ${(val||'')===v?'selected':''}>${l}</option>`).join('')}</select></div>`;
+const pNum=(id,lab,val,min,max,step=1)=>`<div><label>${lab}</label><input id="${id}" type="number" min="${min}" max="${max}" step="${step}" value="${val}"></div>`;
+const pChk=(id,lab,val)=>`<label style="display:block;margin-top:6px"><input type="checkbox" id="${id}" ${val?'checked':''} style="width:auto"> ${lab}</label>`;
+const AUCUN=[['','— aucun —']];
+function powersHtml(it){
+  let h='<div class="card" style="margin-top:16px;margin-bottom:0"><h3 style="margin:0 0 6px">✨ Pouvoirs spéciaux</h3>';
+  const tt=it.kind==='tool'?(it.toolType||'none'):'none';
+  if(it.kind==='tool'&&tt!=='none'){
+    h+=pChk('k_3x3','⛏️ <b>Minage en carré</b> (accroupi = 1 seul bloc)',it.mine3x3);
+    h+=`<div class="row">${pSel('p_size','Taille du carré',[['3','3 × 3'],['5','5 × 5']],String(it.mineSize||3))}<div></div></div>`;
+    h+=pChk('p_only','…seulement les blocs de cet outil (sinon : tous les blocs)',it.mineOnlyTool);
+    if(tt==='pickaxe')h+=pChk('p_vein','⛏️ <b>Veine de minerai</b> : tout le filon d\'un coup',it.veinMine);
+    if(tt==='axe')h+=pChk('p_tree','🪓 <b>Abattage d\'arbre</b> : tout l\'arbre d\'un coup',it.treeFell);
+    h+=pChk('p_smelt','🔥 <b>Auto-fonte</b> : minerais → lingots, sable → verre, cobble → pierre',it.autoSmelt);
+  }
+  if(it.kind!=='armor'&&it.kind!=='food'){
+    h+='<div class="muted" style="margin-top:10px"><b>Quand tu frappes</b></div>';
+    h+=`<div class="row">${pSel('p_hit','Effet sur la cible',AUCUN.concat(EFF_MAUVAIS),it.hitEffect)}${pNum('p_hits','Durée (s)',it.hitEffectSeconds??5,1,600)}${pNum('p_hitl','Niveau',it.hitEffectLevel??1,1,10)}</div>`;
+    h+=`<div class="row">${pNum('p_fire','🔥 Feu (secondes, 0 = non)',it.hitFire??0,0,60)}${pNum('p_steal','❤️ Vol de vie (%)',it.lifeSteal??0,0,100)}${pNum('p_light','⚡ Chance d\'éclair (%)',it.hitLightning??0,0,100)}</div>`;
+    h+='<div class="muted" style="margin-top:10px"><b>Tant que tu le tiens en main</b></div>';
+    h+=`<div class="row">${pSel('p_held','Effet',AUCUN.concat(EFF_BONS),it.heldEffect)}${pNum('p_heldl','Niveau',it.heldEffectLevel??1,1,10)}</div>`;
+    h+='<div class="muted" style="margin-top:10px"><b>Clic droit</b></div>';
+    h+=`<div class="row">${pSel('p_use','Pouvoir',[['none','— aucun —'],['teleport','🌀 Téléportation (là où tu regardes)'],['fireball','🔥 Boule de feu'],['heal','💚 Soin (+4 cœurs)'],['leap','💨 Grand bond'],['lightning','⚡ Foudre à distance']],it.useAbility||'none')}${pNum('p_cd','Recharge (s)',it.useCooldown??3,0,600)}</div>`;
+    if(it.useAbility==='lightning'||(it.hitLightning||0)>0)h+='<div class="muted">⚠️ La foudre peut mettre le feu aux constructions en bois.</div>';
+  }
+  if(it.kind==='armor')h+=`<div class="row">${pSel('p_worn','Effet tant que tu la portes',AUCUN.concat(EFF_BONS),it.wornEffect)}${pNum('p_wornl','Niveau',it.wornEffectLevel??1,1,10)}</div>`;
+  if(it.kind==='food')h+=`<div class="row">${pSel('p_eat','Effet en mangeant',AUCUN.concat(EFF_BONS,EFF_MAUVAIS),it.eatEffect)}${pNum('p_eats','Durée (s)',it.eatEffectSeconds??10,1,600)}${pNum('p_eatl','Niveau',it.eatEffectLevel??1,1,10)}</div>`;
+  return h+'</div>';
+}
+function collectKindFields(it){
+  const v=id=>{const e=$('#'+id);return e?e.value:undefined};
+  if(it.kind==='food'){it.nutrition=parseInt(v('k_nut'))||0;it.saturation=parseFloat(v('k_sat'))||0;it.canAlwaysEat=$('#k_always')?.checked||false}
+  if(it.kind==='tool'||it.kind==='weapon'){it.attackDamage=parseInt(v('k_dmg'))||0;it.durability=parseInt(v('k_dur'))||1}
+  if(it.kind==='tool'){it.toolType=v('k_tool')||'none';it.miningSpeed=parseFloat(v('k_speed'))||8;
+    if($('#k_3x3')){it.mine3x3=$('#k_3x3').checked;it.mineSize=parseInt(v('p_size'))||3;it.mineOnlyTool=$('#p_only')?.checked||false;it.autoSmelt=$('#p_smelt')?.checked||false}
+    if($('#p_vein'))it.veinMine=$('#p_vein').checked; if($('#p_tree'))it.treeFell=$('#p_tree').checked}
+  const num=(id,d)=>{const x=parseFloat(v(id));return isNaN(x)?d:x};
+  if(it.kind!=='armor'&&it.kind!=='food'&&$('#p_hit')){
+    it.hitEffect=v('p_hit')||undefined;it.hitEffectSeconds=num('p_hits',5);it.hitEffectLevel=num('p_hitl',1);
+    it.hitFire=num('p_fire',0);it.lifeSteal=num('p_steal',0);it.hitLightning=num('p_light',0);
+    it.heldEffect=v('p_held')||undefined;it.heldEffectLevel=num('p_heldl',1);
+    it.useAbility=v('p_use')||'none';it.useCooldown=num('p_cd',3)}
+  if(it.kind==='armor'&&$('#p_worn')){it.wornEffect=v('p_worn')||undefined;it.wornEffectLevel=num('p_wornl',1)}
+  if(it.kind==='food'&&$('#p_eat')){it.eatEffect=v('p_eat')||undefined;it.eatEffectSeconds=num('p_eats',10);it.eatEffectLevel=num('p_eatl',1)}
+  if(it.kind==='armor'){it.armorSlot=v('k_slot');it.protection=parseInt(v('k_prot'))||0;it.durability=parseInt(v('k_dur'))||1}
+}
+
+const RARCOL={common:'#fff',uncommon:'#ff5',rare:'#5ef',epic:'#f5f'};
+function itemTexSrc(it){return it.textureFile?(BASE+'api/projects/'+state.project.id+'/texture-file?file='+encodeURIComponent(it.textureFile)+'&t='+Date.now()):
+    'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#000"/><rect width="8" height="8" fill="#f700ff"/><rect x="8" y="8" width="8" height="8" fill="#f700ff"/></svg>')}
+// construit la colonne apercu (3D reconstruite SEULEMENT ici : changement d'item/texture)
+async function setupPreview(it){
+  const pv=$('#preview');
+  pv.innerHTML=`<div class="card"><h3>Aperçu 3D (tourne tout seul)</h3>
+    <canvas id="prev3d" class="vp3d" style="width:100%;height:200px"></canvas></div>
+  <div class="card"><h3>Aperçu inventaire</h3><div id="slotbox"></div></div>
+  <div class="card"><h3>Fichier généré (behavior pack)</h3><pre id="genjson">…</pre></div>`;
+  if(window._prevViewer&&window._prevViewer.dispose)window._prevViewer.dispose();
+  const previewCanvas=$('#prev3d'), viewer=makeViewer(previewCanvas);
+  window._prevViewer=viewer;
+  const px=await imgToPixels(it.textureFile?itemTexSrc(it):null);
+  if(!previewCanvas.isConnected||window._prevViewer!==viewer)return;
+  viewer.renderItem(px?px.data:null,px?px.w:16,px?px.h:16);
+  refreshInfo(it);
+}
+// met a jour SEULEMENT le texte (slot + avertissements + JSON) : appele a chaque frappe
+async function refreshInfo(it=state.project?.items?.find(i=>i.id===state.selItem)){
+  if(!it)return;
+  const box=$('#slotbox'),gj=$('#genjson');if(!box)return;
+  let r;try{r=await api('POST','/api/preview/item',{projectId:state.project.id,item:it})}catch(e){box.innerHTML=`<div class="err">${esc(e.message)}</div>`;return}
+  const texSrc=itemTexSrc(it);
+  box.innerHTML=`<div style="display:flex;gap:16px;align-items:center">
+      <div class="slot"><img src="${texSrc}">${(!['tool','weapon','armor'].includes(it.kind)&&it.maxStackSize>1)?'<span class="cnt">'+it.maxStackSize+'</span>':''}</div>
+      <div><div class="mcname" style="color:${RARCOL[it.rarity]}">${esc(noColor(it.displayName))}</div>
+      <div class="muted" style="margin-top:6px">${it.identifier}</div></div></div>
+    ${r.warnings.length?r.warnings.map(w=>`<div class="warn">⚠ ${esc(w)}</div>`).join(''):'<div class="ok" style="margin-top:10px">Aucun problème détecté ✔</div>'}`;
+  if(gj)gj.textContent=JSON.stringify(r.json,null,2);
+}
+const refreshPreview=refreshInfo;
+
+// ---------- RECETTES ----------
+function viewRecipes(c){
+  const p=state.project;
+  c.innerHTML=`<div class="grid2">
+   <div class="card"><h3>Recettes (${p.recipes.length})</h3>
+     <button class="primary" id="addR" style="width:100%;margin-bottom:10px">➕ Nouvelle recette</button>
+     <div class="list">${p.recipes.map(r=>`<div class="it ${state.selRecipe===r.id?'on':''}" data-id="${r.id}">
+       <div style="flex:1"><b>${esc(r.identifier.split(':')[1])}</b><div class="muted">→ ${r.resultItem} ×${r.resultCount}</div></div>
+       <span class="tag">${r.type}</span></div>`).join('')||'<div class="empty">Aucune recette.</div>'}</div>
+   </div>
+   <div id="redit"></div></div>`;
+  $('#addR').onclick=async()=>{const r={id:crypto.randomUUID(),identifier:p.namespace+':recette'+(p.recipes.length+1),type:'shaped',grid:[['','',''],['','',''],['','','']],ingredients:[],resultItem:p.items[0]?.identifier||'minecraft:stick',resultCount:1};p.recipes.push(r);state.selRecipe=r.id;await save(true);render()};
+  document.querySelectorAll('#content .list .it').forEach(el=>el.onclick=()=>{state.selRecipe=el.dataset.id;render()});
+  renderRecipeEditor();
+}
+function renderRecipeEditor(){
+  const box=$('#redit');const r=state.project.recipes.find(x=>x.id===state.selRecipe);
+  if(!r){box.innerHTML='<div class="card"><div class="empty">Sélectionne ou crée une recette.</div></div>';return}
+  const cell=(v)=>v?`<div class="cico">${iconHtml(v,'icoimg')}</div>`:'';
+  box.innerHTML=`<div class="card"><h3>Éditeur de recette</h3>
+    <label>Identifiant</label><input id="r_id" value="${esc(r.identifier)}">
+    <label>Grille de craft (3×3) — clique une case pour choisir l'ingrédient</label>
+    <div class="craft" id="craft">${[0,1,2].map(y=>[0,1,2].map(x=>{const v=(r.grid?.[y]?.[x])||'';return `<div class="c" data-x="${x}" data-y="${y}" title="${esc(v?itemLabel(v):'')}">${cell(v)}</div>`}).join('')).join('')}</div>
+    <div class="row" style="margin-top:14px">
+      <div><label>Résultat (clique pour choisir)</label>
+        <button id="r_res" type="button" style="width:100%;display:flex;align-items:center;gap:8px;justify-content:flex-start">${iconHtml(r.resultItem,'icoimg')} <span>${esc(itemLabel(r.resultItem))}</span></button></div>
+      <div><label>Quantité</label><input id="r_cnt" type="number" min="1" max="64" value="${r.resultCount}"></div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" id="saveR">💾 Enregistrer</button>
+      <button class="danger" id="delR">Supprimer</button>
+    </div>
+    <div class="muted" style="margin-top:8px">Tu peux mettre n'importe quel item Minecraft (1637 au choix) ou tes propres items.</div>
+  </div>`;
+  document.querySelectorAll('#craft .c').forEach(c=>c.onclick=()=>{
+    openPicker('Ingrédient pour cette case',(id)=>{r.grid[+c.dataset.y][+c.dataset.x]=id;renderRecipeEditor()})});
+  $('#r_id').oninput=()=>r.identifier=$('#r_id').value.trim();
+  $('#r_res').onclick=()=>openPicker('Item produit par la recette',(id)=>{if(id){r.resultItem=id;renderRecipeEditor()}});
+  $('#r_cnt').oninput=()=>r.resultCount=parseInt($('#r_cnt').value)||1;
+  $('#saveR').onclick=async()=>{await save();render()};
+  $('#delR').onclick=async()=>{if(!confirm('Supprimer ?'))return;state.project.recipes=state.project.recipes.filter(x=>x.id!==r.id);state.selRecipe=null;await save(true);render()};
+}
+
+// ============ SKINS ============
+async function viewSkins(c){
+  const p=state.project;p.skins=p.skins||[];
+  c.innerHTML=`<div class="grid3"><div>${listCard(`Skins (${p.skins.length})`,'addSk','Nouveau skin',
+    p.skins.map(sk=>`<div class="it ${state.selSkin===sk.id?'on':''}" data-id="${sk.id}">
+      <div class="slot" style="width:34px;height:34px;border-width:2px;background:#2a2e38">${sk.textureFile?`<img src="${texUrl(sk.textureFile)}" style="width:26px;height:26px;image-rendering:pixelated;object-fit:none;object-position:-2px -2px">`:''}</div>
+      <div style="flex:1"><b>${esc(sk.name)}</b><div class="muted">modèle ${sk.model==='slim'?'fin (Alex)':'large (Steve)'}</div></div></div>`).join(''),'Aucun skin.')}
+    <div class="card"><h3>📥 Exporter</h3><button class="primary" id="skDl" style="width:100%" ${p.skins.length?'':'disabled'}>⬇️ Télécharger le pack de skins (.mcpack)</button>
+      <div class="muted" style="margin-top:8px">Ouvre le <b>.mcpack</b> (double-clic) → il s'installe dans Minecraft. Puis : <b>Profil → Personnages → Modifier → choisir un skin → ton pack</b>.</div></div></div>
+    <div id="skedit"></div><div id="skprev"></div></div>`;
+  $('#addSk').onclick=async()=>{const sk={id:crypto.randomUUID(),name:'Skin '+(p.skins.length+1),model:'wide'};p.skins.push(sk);state.selSkin=sk.id;await save(true);render()};
+  $('#skDl').onclick=()=>{window.location=BASE+'api/projects/'+p.id+'/skinpack'};
+  document.querySelectorAll('#content .list .it').forEach(el=>el.onclick=()=>{state.selSkin=el.dataset.id;render()});
+  const sk=p.skins.find(x=>x.id===state.selSkin);
+  if(!sk){$('#skedit').innerHTML='<div class="card"><div class="empty">Sélectionne ou crée un skin.</div></div>';return}
+  $('#skedit').innerHTML=`<div class="card"><h3>Propriétés du skin</h3>
+    ${F.text('Nom du skin','name',sk.name)}
+    ${F.sel('Modèle du corps','model',sk.model,[['wide','Large — bras 4px (Steve)'],['slim','Fin — bras 3px (Alex)']])}
+    <label>Dessine ton skin (64 × 64, sur le modèle 3D)</label>
+    <div class="row"><button class="primary" id="skDraw" type="button">🎨 Peindre le skin</button>
+      <label style="margin:0"><span class="muted">ou importer un PNG 64×64</span><input type="file" id="skImp" accept="image/png"></label></div>
+    ${sk.textureFile?'<button id="skReset" type="button" style="margin-top:8px">↩️ Repartir de Steve/Alex</button>':''}
+    <div class="row" style="margin-top:16px"><button class="primary" id="skSave">💾 Enregistrer</button><button id="skDup">Dupliquer</button><button class="danger" id="skDel">Supprimer</button></div>
+    <div class="muted" style="margin-top:8px">Astuce : la tête est en haut à gauche de l'image ; les calques du dessus (chapeau, veste) sont dans la moitié basse.</div></div>`;
+  $('#skprev').innerHTML=`<div class="card"><h3>Aperçu du personnage (il tourne)</h3><canvas id="sk3d" class="vp3d" style="width:100%;height:320px"></canvas></div>`;
+  const v=newPreviewViewer($('#sk3d'));
+  const baseTex=()=>BASE+'api/skin/'+sk.model+'/default.png';
+  (async()=>{const geo=await skinGeo(sk.model);const px=await imgToPixels(sk.textureFile?texUrl(sk.textureFile):baseTex());v.renderModel(geo,px?px.data:null,px?px.w:64,px?px.h:64)})();
+  bindForm($('#skedit'),sk,async k=>{if(k==='model'){ // changer de modele : on recharge l'apercu + geo
+      if(sk.textureFile&&!confirm('Changer de modèle garde ta texture mais les bras seront un peu différents. Continuer ?')){sk.model=sk.model==='wide'?'slim':'wide';render();return}
+      await save(true);render()}});
+  const key=()=>'skin_'+slug(sk.name)+'.png';
+  $('#skDraw').onclick=async()=>openPixelEditor({title:'Skin — '+sk.name,file:sk.textureFile,loadUrl:baseTex(),w:64,h:64,sizes:null,templates:false,mode3d:'model',geo:await skinGeo(sk.model),saveAs:key(),
+    onSaved:async fnm=>{sk.textureFile=fnm;await save(true);render()}});
+  $('#skImp').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+    const px=await imgToPixels(URL.createObjectURL(f));if(px&&!(px.w===64&&(px.h===64||px.h===32))&&!confirm(`Ton image fait ${px.w}×${px.h} mais un skin doit faire 64×64. L'utiliser quand même ?`))return;
+    try{await uploadPng(f,key());sk.textureFile=key();await save(true);toast('Skin importé ✔');render()}catch(err){toast(err.message,true)}};
+  if($('#skReset'))$('#skReset').onclick=async()=>{delete sk.textureFile;await save(true);render()};
+  $('#skSave').onclick=async()=>{await save();render()};
+  $('#skDup').onclick=async()=>{const cp=JSON.parse(JSON.stringify(sk));cp.id=crypto.randomUUID();cp.name=sk.name+' (copie)';delete cp.textureFile;p.skins.push(cp);state.selSkin=cp.id;await save(true);render()};
+  $('#skDel').onclick=async()=>{if(!confirm('Supprimer ce skin ?'))return;p.skins=p.skins.filter(x=>x.id!==sk.id);state.selSkin=null;await save(true);render()};
+}
+
+// ---------- DEPLOY ----------
+async function viewDeploy(c){
+  const renderId=c.dataset.renderId, projectId=state.project.id;
+  c.innerHTML='<div class="card"><div class="empty">Analyse du projet…</div></div>';
+  let build,plan;
+  try{build=await api('GET','/api/projects/'+state.project.id+'/build');plan=await api('GET','/api/projects/'+state.project.id+'/install/plan')}
+  catch(e){if(c.dataset.renderId!==renderId)return;c.innerHTML=`<div class="card"><div class="err">${esc(e.message)}</div></div>`;return}
+  if(c.dataset.renderId!==renderId||state.project?.id!==projectId)return;
+  c.innerHTML=`
+  <div class="grid2">
+    <div class="card"><h3>📦 Résumé du build</h3>
+      <div class="row"><div><b style="font-size:22px">${build.stats.items}</b><div class="muted">items</div></div>
+      <div><b style="font-size:22px">${build.stats.recipes}</b><div class="muted">recettes</div></div>
+      <div><b style="font-size:22px">${build.stats.textures}</b><div class="muted">textures</div></div>
+      <div><b style="font-size:22px">${build.files.length}</b><div class="muted">fichiers</div></div></div>
+      <div class="row" style="margin-top:10px"><div><b style="font-size:22px">${build.stats.blocks||0}</b><div class="muted">blocs</div></div>
+      <div><b style="font-size:22px">${build.stats.mobs||0}</b><div class="muted">mobs</div></div>
+      <div><b style="font-size:22px">${build.stats.lootTables||0}</b><div class="muted">loot tables</div></div>
+      <div><b style="font-size:22px">${build.stats.sounds||0}</b><div class="muted">sons</div></div></div>
+      <div style="margin-top:14px"><button class="primary" id="dl">⬇️ Télécharger le .mcaddon</button></div>
+      <div class="muted" style="margin-top:8px">Le .mcaddon s'installe en double-cliquant dessus dans Minecraft (PC/console/mobile).</div>
+    </div>
+    <div class="card"><h3>⚠ Vérifications</h3>
+      ${build.warnings.length?build.warnings.map(w=>`<div class="warn">${esc(w)}</div>`).join(''):'<div class="ok">Aucun problème détecté ✔</div>'}
+    </div>
+  </div>
+  <div class="card"><h3>🚀 Installer sur le serveur configuré</h3>
+    <div class="muted" style="margin-bottom:10px">Écrit l'add-on dans le serveur et l'active dans le monde <b>${esc(plan.worldName || 'configuré')}</b>. Une <b>sauvegarde est faite avant</b>. Il faut <b>1 redémarrage</b> pour l'activer.</div>
+    <div class="row" style="margin-bottom:10px">
+      <div class="muted">Behavior pack : <code>${esc(plan.bpDir)}</code> ${plan.bpExists?'<span class="tag">remplace l\'existant</span>':'<span class="tag">nouveau</span>'}</div>
+    </div>
+    <div class="row">
+      <button class="primary" id="install">📥 Installer sur le serveur</button>
+      <button id="restart" disabled>🔁 Redémarrer le serveur (applique)</button>
+    </div>
+    <div id="installOut" style="margin-top:12px"></div>
+  </div>
+  <div class="card"><h3>🩺 Importer le journal d’erreurs du jeu</h3>
+    <div class="muted" style="margin-bottom:10px">1. Dans Minecraft : <b>Paramètres → Créateur</b>, active <b>« Fichier journal du contenu »</b>, puis reconnecte-toi au serveur.<br>
+    2. Clique le bouton ci-dessous. Dans la fenêtre, colle ce chemin dans la barre d'adresse puis Entrée :<br>
+    <code>%APPDATA%\Minecraft Bedrock\logs</code><br>
+    <span style="opacity:.8">(si le dossier n'existe pas : <code>%LOCALAPPDATA%\Packages\Microsoft.MinecraftUWP_8wekyb3d8bbwe\LocalState\logs</code>)</span><br>
+    3. Choisis le fichier <b>ContentLog</b> le plus récent (tu peux en prendre plusieurs).</div>
+    <label class="primary btnlike">📤 Choisir le(s) fichier(s) journal<input type="file" id="clog" multiple style="display:none"></label>
+    <div id="clogOut" style="margin-top:10px"></div>
+  </div>`;
+  $('#clog').onchange=async()=>{const fs=[...$('#clog').files];if(!fs.length)return;$('#clogOut').innerHTML='<div class="muted">Envoi…</div>';
+    const out=[];for(const f of fs){try{const r=await api('POST','/api/client-log?name='+encodeURIComponent(f.name),await f.arrayBuffer(),true);out.push(`<div class="ok">✔ ${esc(f.name)} envoyé (${Math.round(r.size/1024)} Ko)</div>`)}
+      catch(e){out.push(`<div class="err">${esc(f.name)} : ${esc(e.message)}</div>`)}}
+    $('#clogOut').innerHTML=out.join('')+'<div class="muted" style="margin-top:6px">Journal enregistré dans le dossier data/client-logs du studio.</div>'};
+  $('#dl').onclick=()=>{window.location=BASE+'api/projects/'+state.project.id+'/export'};
+  $('#install').onclick=async()=>{
+    if(!confirm('Installer sur le serveur configuré ?\nUne sauvegarde sera faite avant.'))return;
+    try{const r=await api('POST','/api/projects/'+state.project.id+'/install');
+      $('#installOut').innerHTML=`<div class="ok">✔ Installé. Sauvegarde : <code>${esc(r.backup)}</code><br>Clique « Redémarrer » pour l'activer (1 seul redémarrage).</div>`;
+      $('#restart').disabled=false;toast('Add-on installé ✔')}catch(e){$('#installOut').innerHTML=`<div class="err">${esc(e.message)}</div>`}
+  };
+  $('#restart').onclick=async()=>{
+    if(!confirm('Redémarrer le serveur configuré maintenant ?\nLes joueurs connectés seront déconnectés quelques secondes.'))return;
+    try{await api('POST','/api/server/restart');toast('Serveur en redémarrage…');$('#installOut').innerHTML+='<div class="ok" style="margin-top:8px">🔁 Redémarrage lancé. Attends ~30 s puis reconnecte-toi.</div>'}catch(e){toast(e.message,true)}
+  };
+}
+
+// ============ Outils communs des éditeurs (formulaires liés aux données) ============
+const F={
+  text:(lab,k,v,ph='')=>`<label>${lab}</label><input data-k="${k}" value="${esc(v??'')}" placeholder="${esc(ph)}">`,
+  num:(lab,k,v,min,max,step=1,t='num')=>`<label>${lab}</label><input type="number" data-k="${k}" data-t="${t}" min="${min}" max="${max}" step="${step}" value="${v??''}">`,
+  range:(lab,k,v,min,max,step,suf='')=>`<label>${lab} : <b data-out="${k}">${v}</b>${suf}</label><input type="range" data-k="${k}" data-t="num" min="${min}" max="${max}" step="${step}" value="${v}">`,
+  sel:(lab,k,v,opts)=>`<label>${lab}</label><select data-k="${k}">${opts.map(([val,txt])=>`<option value="${esc(val)}" ${String(v)===String(val)?'selected':''}>${esc(txt)}</option>`).join('')}</select>`,
+  chk:(lab,k,v)=>`<label class="chk"><input type="checkbox" data-k="${k}" data-t="bool" ${v?'checked':''}> ${lab}</label>`,
+  color:(lab,k,v)=>`<label>${lab}</label><input type="color" data-k="${k}" value="${v}" style="height:40px;padding:3px">`,
+};
+function bindForm(root,obj,onChange){
+  root.querySelectorAll('[data-k]').forEach(el=>{
+    el.addEventListener('input',()=>{
+      const k=el.dataset.k,t=el.dataset.t||'str';let v;
+      if(t==='bool')v=el.checked;
+      else if(t==='num'){v=parseFloat(el.value);if(isNaN(v))return}
+      else if(t==='int'){v=parseInt(el.value);if(isNaN(v))return}
+      else if(t==='optint'){if(el.value===''){delete obj[k];onChange&&onChange(k);return}v=parseInt(el.value);if(isNaN(v))return}
+      else v=el.value;
+      obj[k]=v;const out=root.querySelector(`[data-out="${k}"]`);if(out)out.textContent=el.value;onChange&&onChange(k);
+    });
+  });
+}
+function listCard(title,addId,addLabel,rows,empty){
+  return `<div class="card"><h3>${title}</h3><button class="primary" id="${addId}" style="width:100%;margin-bottom:10px">➕ ${addLabel}</button>
+    <div class="list">${rows||`<div class="empty">${empty}</div>`}</div></div>`}
+function newPreviewViewer(cv){if(window._prevViewer&&window._prevViewer.dispose)window._prevViewer.dispose();window._prevViewer=makeViewer(cv);return window._prevViewer}
+function slug(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40)||'element'}
+function lootOptions(){return [['',"— par défaut —"],...(state.project.lootTables||[]).map(l=>[l.name,l.name])]}
+function soundOptions(){return [['',"— son d'origine —"],...(state.project.sounds||[]).map(s=>[s.name,s.name])]}
+async function uploadPng(file,saveAs){await api('POST','/api/projects/'+state.project.id+'/texture?file='+encodeURIComponent(saveAs),await file.arrayBuffer(),true)}
+function warnBox(w){return w.length?w.map(x=>`<div class="warn">⚠ ${esc(x)}</div>`).join(''):'<div class="ok">Aucun problème détecté ✔</div>'}
+let _dbT=null;function debounce(fn,ms=250){clearTimeout(_dbT);_dbT=setTimeout(fn,ms)}
+
+// ============ BLOCS ============
+const BLOCK_SOUNDS=[['stone','Pierre'],['wood','Bois'],['grass','Herbe'],['gravel','Gravier'],['sand','Sable'],['glass','Verre'],['metal','Métal'],['cloth','Laine'],['snow','Neige'],['normal','Normal']];
+function viewBlocks(c){
+  const p=state.project;p.blocks=p.blocks||[];
+  c.innerHTML=`<div class="grid3"><div>${listCard(`Blocs (${p.blocks.length})`,'addB','Nouveau bloc',
+    p.blocks.map(b=>`<div class="it ${state.selBlock===b.id?'on':''}" data-id="${b.id}">
+      <div class="slot" style="width:34px;height:34px;border-width:2px">${b.textureFile?`<img src="${texUrl(b.textureFile)}" style="width:26px;height:26px;image-rendering:pixelated">`:''}</div>
+      <div style="flex:1"><b>${esc(b.displayName)}</b><div class="muted">${b.identifier}</div></div></div>`).join(''),'Aucun bloc.')}</div>
+    <div id="bedit"></div><div id="bprev"></div></div>`;
+  $('#addB').onclick=async()=>{const n=p.blocks.length+1;const b={id:crypto.randomUUID(),identifier:p.namespace+':bloc'+n,displayName:'Nouveau bloc',category:'construction',
+    hardness:1.5,explosionResistance:6,lightEmission:0,friction:0.4,renderMethod:'opaque',flammable:false,mapColor:'#888888',sound:'stone',lootTable:'',gravity:false};
+    p.blocks.push(b);state.selBlock=b.id;await save(true);render()};
+  document.querySelectorAll('#content .list .it').forEach(el=>el.onclick=()=>{state.selBlock=el.dataset.id;render()});
+  const b=p.blocks.find(x=>x.id===state.selBlock);
+  if(!b){$('#bedit').innerHTML='<div class="card"><div class="empty">Sélectionne ou crée un bloc.</div></div>';return}
+  $('#bedit').innerHTML=`<div class="card"><h3>Propriétés du bloc</h3>
+    ${F.text('Identifiant (namespace:nom)','identifier',b.identifier)}${F.text('Nom affiché en jeu','displayName',b.displayName)}
+    <div class="row"><div>${F.sel('Onglet créatif','category',b.category,Object.entries(CATS))}</div><div>${F.sel('Son (pas, casse)','sound',b.sound,BLOCK_SOUNDS)}</div></div>
+    <div class="row"><div>${F.num('Dureté (secondes à la main)','hardness',b.hardness,0,100,0.1)}</div><div>${F.num('Résistance aux explosions','explosionResistance',b.explosionResistance,0,3600,1)}</div></div>
+    ${F.range('Lumière émise','lightEmission',b.lightEmission,0,15,1,' / 15')}
+    ${F.range('Glissance (friction)','friction',b.friction,0,0.9,0.05,' (0.4 = normal, 0.1 = glace)')}
+    <div class="row"><div>${F.sel('Transparence','renderMethod',b.renderMethod,[['opaque','Opaque (pierre)'],['alpha_test','Découpé (verre, feuilles)'],['blend','Translucide (verre teinté)']])}</div><div>${F.color('Couleur sur la carte','mapColor',b.mapColor)}</div></div>
+    ${F.sel('Ce qu\'il donne quand on le casse','lootTable',b.lootTable,[['','Lui-même'],...(p.lootTables||[]).map(l=>[l.name,'Loot table : '+l.name])])}
+    ${F.chk('Inflammable (brûle comme le bois)','flammable',b.flammable)}
+    ${F.chk('Tombe comme le sable (non supporté en Bedrock vanilla)','gravity',b.gravity)}
+    <label>Texture (même image sur les 6 faces)</label>
+    <div class="row"><button class="primary" id="bDraw" type="button">🎨 Dessiner pixel par pixel</button>
+      <label style="margin:0"><span class="muted">ou importer un PNG</span><input type="file" id="bImp" accept="image/png"></label></div>
+    <div class="row" style="margin-top:16px"><button class="primary" id="bSave">💾 Enregistrer</button><button id="bDup">Dupliquer</button><button class="danger" id="bDel">Supprimer</button></div>
+    <div class="muted" style="margin-top:8px">En jeu : <code>/give @s ${esc(b.identifier)}</code></div></div>`;
+  $('#bprev').innerHTML=`<div class="card"><h3>Aperçu 3D</h3><canvas id="b3d" class="vp3d" style="width:100%;height:220px"></canvas></div>
+    <div class="card"><h3>Vérifications</h3><div id="bwarn">…</div></div><div class="card"><h3>Fichier généré</h3><pre id="bjson">…</pre></div>`;
+  const v=newPreviewViewer($('#b3d'));
+  (async()=>{const px=b.textureFile?await imgToPixels(texUrl(b.textureFile)):null;v.renderCube(px?px.data:null,px?px.w:16,px?px.h:16)})();
+  const refresh=()=>debounce(async()=>{try{const r=await api('POST','/api/preview/block',{projectId:p.id,block:b});$('#bwarn').innerHTML=warnBox(r.warnings);$('#bjson').textContent=JSON.stringify(r.json,null,2)}catch(e){$('#bwarn').innerHTML=`<div class="err">${esc(e.message)}</div>`}});
+  bindForm($('#bedit'),b,refresh);refresh();
+  const key=()=>'bloc_'+b.identifier.split(':')[1]+'.png';
+  $('#bDraw').onclick=()=>openPixelEditor({title:b.displayName,file:b.textureFile,w:16,h:16,sizes:[16,32],templates:true,mode3d:'cube',saveAs:key(),
+    onSaved:async f=>{b.textureFile=f;await save(true);render()}});
+  $('#bImp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{await uploadImageNormalized(f,key());b.textureFile=key();await save(true);render()}catch(err){toast(err.message,true)}};
+  $('#bSave').onclick=async()=>{await save();render()};
+  $('#bDup').onclick=async()=>{const cp=JSON.parse(JSON.stringify(b));cp.id=crypto.randomUUID();cp.identifier=b.identifier+'_copie';delete cp.textureFile;p.blocks.push(cp);state.selBlock=cp.id;await save(true);render()};
+  $('#bDel').onclick=async()=>{if(!confirm('Supprimer ce bloc ?'))return;p.blocks=p.blocks.filter(x=>x.id!==b.id);state.selBlock=null;await save(true);render()};
+}
+
+// ============ MOBS ============
+let MOBBASES=[];
+async function loadMobBases(){if(!MOBBASES.length){try{MOBBASES=(await api('GET','/api/mobbases')).bases}catch{}}return MOBBASES}
+function baseMeta(base){return MOBBASES.find(b=>b.base===base)||{base,nom:base,tw:64,th:32,health:20,damage:null,spawn:false}}
+async function viewMobs(c){
+  const renderId=c.dataset.renderId;
+  await loadMobBases();
+  if(c.dataset.renderId!==renderId)return;
+  const p=state.project;p.mobs=p.mobs||[];
+  c.innerHTML=`<div class="grid3"><div>${listCard(`Mobs (${p.mobs.length})`,'addM','Nouveau mob',
+    p.mobs.map(m=>`<div class="it ${state.selMob===m.id?'on':''}" data-id="${m.id}">
+      <span style="width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 35%,${m.eggOverlay} 0 22%,${m.eggBase} 23%);display:inline-block"></span>
+      <div style="flex:1"><b>${esc(m.displayName)}</b>${m.isBoss?' <span class="tag">boss</span>':''}<div class="muted">${m.identifier} · base ${esc(baseMeta(m.base).nom)}</div></div></div>`).join(''),'Aucun mob.')}</div>
+    <div id="medit"></div><div id="mprev"></div></div>`;
+  $('#addM').onclick=async()=>{const bm=baseMeta('zombie');const n=p.mobs.length+1;
+    const m={id:crypto.randomUUID(),identifier:p.namespace+':mob'+n,displayName:'Nouveau mob',base:'zombie',health:bm.health||20,attackDamage:typeof bm.damage==='number'?bm.damage:undefined,
+      speedFactor:1,scale:1,lootTable:'',burnsInDaylight:true,keepBaseBehavior:false,isBoss:false,bossDarkenSky:false,spawnNaturally:false,eggBase:'#3a7d44',eggOverlay:'#a8f2c2',soundAmbient:'',soundHurt:'',soundDeath:''};
+    p.mobs.push(m);state.selMob=m.id;await save(true);render()};
+  document.querySelectorAll('#content .list .it').forEach(el=>el.onclick=()=>{state.selMob=el.dataset.id;render()});
+  const m=p.mobs.find(x=>x.id===state.selMob);
+  if(!m){$('#medit').innerHTML='<div class="card"><div class="empty">Sélectionne ou crée un mob.</div></div>';return}
+  const bm=baseMeta(m.base);const melee=typeof bm.damage==='number'||(bm.damage&&typeof bm.damage==='object');
+  $('#medit').innerHTML=`<div class="card"><h3>Propriétés du mob</h3>
+    ${F.text('Identifiant (namespace:nom)','identifier',m.identifier)}${F.text('Nom affiché en jeu','displayName',m.displayName)}
+    <label>Mob de base (son modèle, ses animations et son comportement)</label>
+    <select id="mBase">${MOBBASES.map(x=>`<option value="${x.base}" ${x.base===m.base?'selected':''}>${esc(x.nom)}${x.hostile?' ⚔️':''}</option>`).join('')}</select>
+    <div class="row"><div>${F.num('Points de vie (♥ = 2)','health',m.health,1,10000,1,'int')}</div>
+      <div>${melee?F.num('Dégâts d\'attaque','attackDamage',m.attackDamage,0,1000,1,'optint'):'<label>Dégâts d\'attaque</label><input disabled value="Pas d\'attaque au corps à corps">'}</div></div>
+    ${F.range('Vitesse','speedFactor',m.speedFactor,0.1,5,0.1,' × la vitesse normale')}
+    ${F.range('Taille','scale',m.scale,0.1,10,0.1,' × la taille normale')}
+    ${F.chk('Brûle au soleil (zombies, squelettes…)','burnsInDaylight',m.burnsInDaylight)}
+    ${F.chk('Garder les capacités spéciales du mob de base (explosion du creeper, boules de feu…) — ⚠️ retire l\'œuf personnalisé','keepBaseBehavior',m.keepBaseBehavior)}
+    <div class="muted" style="margin-top:-4px;margin-bottom:8px">Décoché (conseillé) = ton <b>œuf apparaît dans le créatif</b> et le mob marche normalement. Coché = capacités spéciales mais pas d'œuf (il faut <code>/summon</code>).</div>
+    ${F.chk('C\'est un BOSS (barre de vie en haut de l\'écran)','isBoss',m.isBoss)}
+    <div id="mBossOpt" style="${m.isBoss?'':'display:none'}">${F.chk('Assombrit le ciel (comme le Wither)','bossDarkenSky',m.bossDarkenSky)}</div>
+    ${bm.spawn?F.chk('Apparaît naturellement (aux mêmes endroits que le mob de base)','spawnNaturally',m.spawnNaturally):'<div class="muted" style="margin-top:8px">Ce mob de base n\'apparaît pas naturellement : utilise l\'œuf ou /summon.</div>'}
+    <div id="mSpawnOpt" style="${m.spawnNaturally&&bm.spawn?'':'display:none'}">${F.num('Fréquence d\'apparition (poids, vide = comme l\'original)','spawnWeight',m.spawnWeight,1,1000,1,'optint')}</div>
+    ${F.sel('Butin quand il meurt','lootTable',m.lootTable,[['','Butin du mob de base'],...(p.lootTables||[]).map(l=>[l.name,'Loot table : '+l.name])])}
+    <div class="row"><div>${F.color('Œuf : couleur de fond','eggBase',m.eggBase)}</div><div>${F.color('Œuf : couleur des taches','eggOverlay',m.eggOverlay)}</div></div>
+    <div class="row"><div>${F.sel('Son quand il vit','soundAmbient',m.soundAmbient,soundOptions())}</div><div>${F.sel('Son quand il a mal','soundHurt',m.soundHurt,soundOptions())}</div><div>${F.sel('Son quand il meurt','soundDeath',m.soundDeath,soundOptions())}</div></div>
+    <label>Texture (${bm.tw} × ${bm.th}, peinte sur le modèle 3D)</label>
+    <div class="row"><button class="primary" id="mDraw" type="button">🎨 Peindre la texture</button>
+      <label style="margin:0"><span class="muted">ou importer un PNG</span><input type="file" id="mImp" accept="image/png"></label></div>
+    ${m.textureFile?'<button id="mReset" type="button" style="margin-top:8px">↩️ Revenir à la texture d\'origine</button>':''}
+    <div class="row" style="margin-top:16px"><button class="primary" id="mSave">💾 Enregistrer</button><button id="mDup">Dupliquer</button><button class="danger" id="mDel">Supprimer</button></div>
+    <div class="muted" style="margin-top:8px">En jeu : ${m.keepBaseBehavior?`pas d'œuf (capacités spéciales activées) → <code>/summon ${esc(m.identifier)}</code>`:`<b>œuf dans l'onglet créatif</b> (cherche "${esc(m.displayName)}"), ou <code>/summon ${esc(m.identifier)}</code>`}</div></div>`;
+  $('#mprev').innerHTML=`<div class="card"><h3>Aperçu 3D</h3><canvas id="m3d" class="vp3d" style="width:100%;height:260px"></canvas></div>
+    <div class="card"><h3>Vérifications</h3><div id="mwarn">…</div></div>`;
+  const v=newPreviewViewer($('#m3d'));
+  const baseTex=BASE+'api/mobbases/'+m.base+'/texture.png';
+  (async()=>{const geo=await mobGeo(m.base);const px=await imgToPixels(m.textureFile?texUrl(m.textureFile):baseTex);v.renderModel(geo,px?px.data:null,px?px.w:bm.tw,px?px.h:bm.th)})();
+  const refresh=()=>debounce(async()=>{try{const r=await api('POST','/api/preview/mob',{projectId:p.id,mob:m});
+    const hp=r.resume.health?r.resume.health.value:m.health;
+    $('#mwarn').innerHTML=`<div class="muted" style="margin-bottom:8px">❤️ ${hp} PV (${Math.ceil(hp/2)} cœurs)${r.resume.scale?' · taille ×'+r.resume.scale.value:''}${r.resume.boss?' · 👑 boss':''}${r.spawn?' · apparaît naturellement':''}</div>`+warnBox(r.warnings)}
+    catch(e){$('#mwarn').innerHTML=`<div class="err">${esc(e.message)}</div>`}});
+  bindForm($('#medit'),m,k=>{if(k==='isBoss')$('#mBossOpt').style.display=m.isBoss?'':'none';if(k==='spawnNaturally')$('#mSpawnOpt').style.display=m.spawnNaturally?'':'none';refresh()});refresh();
+  $('#mBase').onchange=async()=>{const nb=$('#mBase').value;
+    if(m.textureFile&&!confirm('Ta texture peinte ne correspondra pas au nouveau modèle : elle sera retirée. Continuer ?')){$('#mBase').value=m.base;return}
+    const nm=baseMeta(nb);m.base=nb;delete m.textureFile;m.health=nm.health||20;
+    if(typeof nm.damage==='number')m.attackDamage=nm.damage;else delete m.attackDamage;
+    if(!nm.spawn)m.spawnNaturally=false;await save(true);render()};
+  const key=()=>'mob_'+m.identifier.split(':')[1]+'.png';
+  $('#mDraw').onclick=async()=>openPixelEditor({title:m.displayName,file:m.textureFile,loadUrl:baseTex,w:bm.tw,h:bm.th,sizes:null,templates:false,mode3d:'model',geo:await mobGeo(m.base),saveAs:key(),
+    onSaved:async f=>{m.textureFile=f;await save(true);render()}});
+  $('#mImp').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+    const px=await imgToPixels(URL.createObjectURL(f));if(px&&(px.w!==bm.tw||px.h!==bm.th)&&!confirm(`Ton image fait ${px.w}×${px.h} mais le modèle attend ${bm.tw}×${bm.th}. Elle risque d'être mal placée. L'utiliser quand même ?`))return;
+    try{await uploadPng(f,key());m.textureFile=key();await save(true);toast('Texture ajoutée ✔');render()}catch(err){toast(err.message,true)}};
+  if($('#mReset'))$('#mReset').onclick=async()=>{delete m.textureFile;await save(true);render()};
+  $('#mSave').onclick=async()=>{await save();render()};
+  $('#mDup').onclick=async()=>{const cp=JSON.parse(JSON.stringify(m));cp.id=crypto.randomUUID();cp.identifier=m.identifier+'_copie';delete cp.textureFile;p.mobs.push(cp);state.selMob=cp.id;await save(true);render()};
+  $('#mDel').onclick=async()=>{if(!confirm('Supprimer ce mob ?'))return;p.mobs=p.mobs.filter(x=>x.id!==m.id);state.selMob=null;await save(true);render()};
+}
+
+// ============ LOOT TABLES ============
+function viewLoot(c){
+  const p=state.project;p.lootTables=p.lootTables||[];
+  c.innerHTML=`<div class="grid2" style="grid-template-columns:300px 1fr"><div>${listCard(`Loot tables (${p.lootTables.length})`,'addL','Nouvelle loot table',
+    p.lootTables.map(l=>`<div class="it ${state.selLoot===l.id?'on':''}" data-id="${l.id}"><div style="flex:1"><b>${esc(l.name)}</b>
+      <div class="muted">${l.pools.length} groupe(s) · ${l.pools.reduce((a,x)=>a+x.entries.length,0)} objet(s)</div></div></div>`).join(''),'Aucune loot table.')}
+    <div class="muted" style="padding:0 4px">Une loot table = ce qu'on obtient en cassant un bloc ou en tuant un mob. Choisis-la ensuite dans l'éditeur du bloc ou du mob.</div></div>
+    <div id="ledit"></div></div>`;
+  $('#addL').onclick=async()=>{const l={id:crypto.randomUUID(),name:'butin'+(p.lootTables.length+1),pools:[{rollsMin:1,rollsMax:1,entries:[],killedByPlayer:false,chance:1}]};
+    p.lootTables.push(l);state.selLoot=l.id;await save(true);render()};
+  document.querySelectorAll('#content .list .it').forEach(el=>el.onclick=()=>{state.selLoot=el.dataset.id;render()});
+  const l=p.lootTables.find(x=>x.id===state.selLoot);
+  if(!l){$('#ledit').innerHTML='<div class="card"><div class="empty">Sélectionne ou crée une loot table.</div></div>';return}
+  const usedBy=[...(p.blocks||[]).filter(b=>b.lootTable===l.name).map(b=>'🧱 '+b.displayName),...(p.mobs||[]).filter(m=>m.lootTable===l.name).map(m=>'🐷 '+m.displayName)];
+  const pool=(pl,pi)=>{const tot=pl.entries.reduce((a,e)=>a+e.weight,0)||1;
+    return `<div class="card" style="background:rgba(255,255,255,.025)" data-pool="${pi}">
+      <div style="display:flex;align-items:center;gap:8px"><h3 style="margin:0;flex:1">Groupe ${pi+1}</h3><button class="danger" data-delpool="${pi}">Supprimer le groupe</button></div>
+      <div class="row"><div>${F.num('Tirages min','rollsMin',pl.rollsMin,0,64,1,'int')}</div><div>${F.num('Tirages max','rollsMax',pl.rollsMax,0,64,1,'int')}</div></div>
+      ${F.range('Chance que ce groupe donne quelque chose','chance',pl.chance,0,1,0.05,' (1 = toujours)')}
+      ${F.chk('Seulement si tué par un joueur','killedByPlayer',pl.killedByPlayer)}
+      <label>Objets possibles (à chaque tirage, un objet est choisi selon son poids)</label>
+      ${pl.entries.map((e,ei)=>`<div class="pk" style="border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:default" data-entry="${ei}">
+        <span style="cursor:pointer" data-pickentry="${ei}">${iconHtml(e.item,'icoimg')}</span>
+        <div style="flex:1;min-width:120px;cursor:pointer" data-pickentry="${ei}"><b>${esc(itemLabel(e.item))}</b><div><code>${e.item}</code></div></div>
+        <label style="margin:0;width:70px">Poids<input type="number" min="1" max="1000" data-ek="weight" value="${e.weight}"></label>
+        <label style="margin:0;width:62px">Min<input type="number" min="1" max="64" data-ek="countMin" value="${e.countMin}"></label>
+        <label style="margin:0;width:62px">Max<input type="number" min="1" max="64" data-ek="countMax" value="${e.countMax}"></label>
+        <span class="tag" title="Chance d'être choisi à chaque tirage">${Math.round(e.weight/tot*100)}%</span>
+        <button class="danger" data-delentry="${ei}" style="padding:6px 9px">✕</button></div>`).join('')||'<div class="muted">Aucun objet.</div>'}
+      <button data-addentry="${pi}" style="margin-top:6px">➕ Ajouter un objet</button></div>`};
+  $('#ledit').innerHTML=`<div class="card"><h3>Loot table</h3>${F.text('Nom (minuscules, sans espace)','name',l.name)}
+      <div class="muted" style="margin-top:6px">Utilisée par : ${usedBy.length?usedBy.map(esc).join(', '):'rien pour l\'instant'} · Test en jeu : <code>/loot spawn ~ ~ ~ loot "${esc(p.namespace)}/${esc(l.name)}"</code></div></div>
+    <div id="lpools">${l.pools.map(pool).join('')}</div>
+    <div class="row"><button id="lAddPool">➕ Ajouter un groupe</button><button class="primary" id="lSave">💾 Enregistrer</button><button class="danger" id="lDel">Supprimer la loot table</button></div>
+    <div class="card" style="margin-top:16px"><h3>Vérifications</h3><div id="lwarn">…</div></div><div class="card"><h3>Fichier généré</h3><pre id="ljson">…</pre></div>`;
+  const refresh=()=>debounce(async()=>{try{const r=await api('POST','/api/preview/loot',{projectId:p.id,table:l});$('#lwarn').innerHTML=warnBox(r.warnings);$('#ljson').textContent=JSON.stringify(r.json,null,2)}catch(e){$('#lwarn').innerHTML=`<div class="err">${esc(e.message)}</div>`}});
+  const oldName=l.name;
+  bindForm($('#ledit').querySelector('.card'),l,()=>refresh());
+  document.querySelectorAll('[data-pool]').forEach(el=>{const pl=l.pools[+el.dataset.pool];
+    bindForm(el,pl,()=>refresh());
+    el.querySelectorAll('[data-entry]').forEach(row=>{const e=pl.entries[+row.dataset.entry];
+      row.querySelectorAll('[data-ek]').forEach(inp=>inp.oninput=()=>{const v=parseInt(inp.value);if(!isNaN(v)){e[inp.dataset.ek]=v;refresh()}});
+      row.querySelectorAll('[data-pickentry]').forEach(x=>x.onclick=()=>openPicker('Objet du butin',id=>{if(id){e.item=id;render()}}))});
+  });
+  document.querySelectorAll('[data-addentry]').forEach(b=>b.onclick=()=>openPicker('Objet à ajouter au butin',id=>{if(id){l.pools[+b.dataset.addentry].entries.push({item:id,weight:1,countMin:1,countMax:1});render()}}));
+  document.querySelectorAll('[data-delentry]').forEach(b=>b.onclick=()=>{const pi=+b.closest('[data-pool]').dataset.pool;l.pools[pi].entries.splice(+b.dataset.delentry,1);render()});
+  document.querySelectorAll('[data-delpool]').forEach(b=>b.onclick=()=>{if(!confirm('Supprimer ce groupe ?'))return;l.pools.splice(+b.dataset.delpool,1);render()});
+  $('#lAddPool').onclick=()=>{l.pools.push({rollsMin:1,rollsMax:1,entries:[],killedByPlayer:false,chance:1});render()};
+  $('#lSave').onclick=async()=>{
+    if(l.name!==oldName){for(const b of p.blocks||[])if(b.lootTable===oldName)b.lootTable=l.name;for(const m of p.mobs||[])if(m.lootTable===oldName)m.lootTable=l.name}
+    await save();render()};
+  $('#lDel').onclick=async()=>{if(usedBy.length&&!confirm('Cette loot table est utilisée ('+usedBy.join(', ')+'). Supprimer quand même ?'))return;if(!usedBy.length&&!confirm('Supprimer ?'))return;
+    for(const b of p.blocks||[])if(b.lootTable===l.name)b.lootTable='';for(const m of p.mobs||[])if(m.lootTable===l.name)m.lootTable='';
+    p.lootTables=p.lootTables.filter(x=>x.id!==l.id);state.selLoot=null;await save(true);render()};
+  refresh();
+}
+
+// ============ TEXTURES (galerie) ============
+async function viewTextures(c){
+  const renderId=c.dataset.renderId,p=state.project;
+  let list=[];try{list=(await api('GET','/api/projects/'+p.id+'/textures-info')).textures}catch{}
+  if(c.dataset.renderId!==renderId)return;
+  const users=f=>[...p.items.filter(i=>i.textureFile===f).map(i=>({t:'item',o:i,l:'⚔️ '+noColor(i.displayName)})),
+    ...(p.blocks||[]).filter(b=>b.textureFile===f).map(b=>({t:'block',o:b,l:'🧱 '+b.displayName})),
+    ...(p.mobs||[]).filter(m=>m.textureFile===f).map(m=>({t:'mob',o:m,l:'🐷 '+m.displayName}))];
+  c.innerHTML=`<div class="card"><h3>➕ Nouvelle texture</h3><div class="row" style="align-items:flex-end">
+      <div>${'<label>Nom</label><input id="tName" placeholder="ma_texture">'}</div>
+      <div><label>Taille</label><select id="tSize"><option>16</option><option>32</option><option>64</option><option>128</option></select></div>
+      <div><button class="primary" id="tNew" style="width:100%">🎨 Dessiner</button></div>
+      <div><label style="margin:0"><span class="muted">ou importer un PNG</span><input type="file" id="tImp" accept="image/png"></label></div></div>
+      <div class="muted" style="margin-top:8px">Les textures dessinées ici peuvent ensuite être importées dans un item, un bloc ou un mob. Celles des items, blocs et mobs apparaissent aussi ici.</div></div>
+    <div class="card"><h3>🎨 Textures du projet (${list.length})</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">${list.map(t=>{const u=users(t.file);return `<div class="card" style="margin:0;padding:12px;text-align:center">
+      <div style="height:96px;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#2a2e38 0 25%,#1f232b 0 50%) 50%/16px 16px;border-radius:8px">
+        <img src="${texUrl(t.file)}" style="max-width:96px;max-height:96px;image-rendering:pixelated;${t.w<=32?'width:96px':''}"></div>
+      <div style="margin-top:8px;font-size:12px;word-break:break-all"><b>${esc(t.file)}</b></div>
+      <div class="muted">${t.w}×${t.h} · ${u.length?u.map(x=>esc(x.l)).join(', '):'non utilisée'}</div>
+      <div class="row" style="margin-top:8px"><button data-edit="${esc(t.file)}">✏️ Modifier</button><button class="danger" data-del="${esc(t.file)}" ${u.length?'disabled title="Utilisée"':''}>🗑</button></div></div>`}).join('')||'<div class="empty">Aucune texture.</div>'}</div></div>`;
+  const nameOk=()=>{const n=slug($('#tName').value);if(!$('#tName').value.trim()){toast('Donne un nom à ta texture',true);return null}return n+'.png'};
+  $('#tNew').onclick=()=>{const f=nameOk();if(!f)return;const s=parseInt($('#tSize').value);
+    if(list.some(t=>t.file===f)&&!confirm(f+' existe déjà : la remplacer ?'))return;
+    openPixelEditor({title:f,w:s,h:s,sizes:null,templates:s===16,mode3d:'item',saveAs:f,onSaved:()=>render()})};
+  $('#tImp').onchange=async e=>{const file=e.target.files[0];if(!file)return;const f=$('#tName').value.trim()?nameOk():slug(file.name.replace(/\.png$/i,''))+'.png';
+    try{await uploadImageNormalized(file,f);toast('Texture importée ✔');render()}catch(err){toast(err.message,true)}};
+  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=async()=>{const f=b.dataset.edit;const u=users(f)[0];
+    let mode='item',geo=null;if(u&&u.t==='block')mode='cube';if(u&&u.t==='mob'){mode='model';geo=await mobGeo(u.o.base)}
+    openPixelEditor({title:f,file:f,sizes:null,templates:false,mode3d:mode,geo,saveAs:f,onSaved:()=>render()})});
+  document.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(!confirm('Supprimer '+b.dataset.del+' ?'))return;
+    await api('DELETE','/api/projects/'+p.id+'/texture?file='+encodeURIComponent(b.dataset.del));render()});
+}
+
+// ============ SONS ============
+const SOUND_CATS=[['neutral','Neutre (animaux)'],['hostile','Hostile (monstres)'],['player','Joueur'],['block','Bloc'],['ambient','Ambiance'],['music','Musique'],['record','Disque'],['weather','Météo'],['ui','Interface']];
+function viewSounds(c){
+  const p=state.project;p.sounds=p.sounds||[];
+  c.innerHTML=`<div class="card"><h3>➕ Ajouter un son</h3><div class="row" style="align-items:flex-end">
+      <div><label>Nom (minuscules, sans espace)</label><input id="sName" placeholder="cri_du_roi"></div>
+      <div><label>Fichier audio (.ogg ou .wav)</label><input type="file" id="sFile" accept=".ogg,.wav,audio/ogg,audio/wav"></div>
+      <div><button class="primary" id="sAdd" style="width:100%">⬆️ Ajouter</button></div></div>
+      <div class="muted" style="margin-top:8px">Minecraft Bedrock lit le <b>.ogg</b> (conseillé) et le .wav, pas le .mp3. Pour convertir un mp3 : n'importe quel convertisseur audio gratuit (Audacity → Exporter en OGG).</div></div>
+    <div class="card"><h3>🔊 Sons du projet (${p.sounds.length})</h3>${p.sounds.map((s,i)=>{const used=(p.mobs||[]).filter(m=>[m.soundAmbient,m.soundHurt,m.soundDeath].includes(s.name)).map(m=>m.displayName);
+      return `<div class="card" style="background:rgba(255,255,255,.025)" data-snd="${i}">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><b style="flex:1">${esc(s.name)}</b><code>/playsound ${esc(p.namespace)}.${esc(s.name)} @s</code>
+        <button class="danger" data-sdel="${i}">Supprimer</button></div>
+      <audio controls preload="none" style="width:100%;margin-top:10px" src="${BASE}api/projects/${p.id}/sound-file?file=${encodeURIComponent(s.file)}"></audio>
+      <div class="row"><div>${F.sel('Catégorie','category',s.category,SOUND_CATS)}</div><div>${F.range('Volume','volume',s.volume,0,2,0.1)}</div><div>${F.range('Hauteur (aigu/grave)','pitch',s.pitch,0.5,2,0.05)}</div></div>
+      <div class="muted">${used.length?'Utilisé par : '+used.map(esc).join(', '):'Tu peux l\'attribuer à un mob dans son éditeur.'}</div></div>`}).join('')||'<div class="empty">Aucun son.</div>'}
+      ${p.sounds.length?'<button class="primary" id="sSave">💾 Enregistrer les réglages</button>':''}</div>`;
+  $('#sAdd').onclick=async()=>{const file=$('#sFile').files[0];if(!file){toast('Choisis un fichier .ogg ou .wav',true);return}
+    const ext=file.name.toLowerCase().endsWith('.wav')?'wav':'ogg';if(!/\.(ogg|wav)$/i.test(file.name)){toast('Seulement .ogg ou .wav',true);return}
+    const name=slug($('#sName').value||file.name.replace(/\.[^.]+$/,''));if(p.sounds.some(s=>s.name===name)){toast('Un son porte déjà ce nom',true);return}
+    try{await api('POST','/api/projects/'+p.id+'/sound?file='+encodeURIComponent(name+'.'+ext),await file.arrayBuffer(),true);
+      p.sounds.push({id:crypto.randomUUID(),name,file:name+'.'+ext,category:'neutral',volume:1,pitch:1});await save(true);toast('Son ajouté ✔');render()}catch(e){toast(e.message,true)}};
+  document.querySelectorAll('[data-snd]').forEach(el=>bindForm(el,p.sounds[+el.dataset.snd]));
+  document.querySelectorAll('[data-sdel]').forEach(b=>b.onclick=async()=>{const s=p.sounds[+b.dataset.sdel];if(!confirm('Supprimer le son '+s.name+' ?'))return;
+    for(const m of p.mobs||[])for(const k of ['soundAmbient','soundHurt','soundDeath'])if(m[k]===s.name)m[k]='';
+    p.sounds.splice(+b.dataset.sdel,1);await save(true);render()});
+  if($('#sSave'))$('#sSave').onclick=async()=>{await save();render()};
+}
+
+// ---------- HISTORIQUE ----------
+async function viewHistory(c){
+  const renderId=c.dataset.renderId;
+  const {history}=await api('GET','/api/projects/'+state.project.id+'/history');
+  if(c.dataset.renderId!==renderId)return;
+  c.innerHTML=`<div class="card"><h3>🕐 Versions sauvegardées (${history.length})</h3>
+    <div class="muted" style="margin-bottom:10px">Chaque sauvegarde crée une version. Tu peux revenir à n'importe laquelle.</div>
+    <div class="list">${history.map(h=>`<div class="it"><div style="flex:1">${new Date(h.savedAt).toLocaleString('fr-FR')}</div>
+      <button data-h="${h.id}">Restaurer</button></div>`).join('')||'<div class="empty">Aucune version.</div>'}</div></div>`;
+  document.querySelectorAll('[data-h]').forEach(b=>b.onclick=async()=>{if(!confirm('Restaurer cette version ?'))return;
+    state.project=await api('POST','/api/projects/'+state.project.id+'/restore/'+b.dataset.h);toast('Version restaurée ✔');state.view='items';render()});
+}
+
+// ============ 3D : item (extrusion), cube (bloc) ou modèle de mob ============
+function pixelsToCanvas(pixels,w,h){const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pixels),w,h),0,0);return c}
+function makeViewer(canvas){
+  let renderer,scene,camera,group,raf,ready=false;
+  let rotY=0,tiltExtra=0,auto=true,curTex=null,curCv=null;
+  function init(){
+    if(!window.THREE){return false}
+    renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+    renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+    const w=canvas.clientWidth||260,h=canvas.clientHeight||230;renderer.setSize(w,h,false);
+    scene=new THREE.Scene();
+    camera=new THREE.PerspectiveCamera(42,w/h,0.1,200);camera.position.set(0,0,26);
+    scene.add(new THREE.AmbientLight(0xffffff,0.8));
+    const d=new THREE.DirectionalLight(0xffffff,0.75);d.position.set(10,14,18);scene.add(d);
+    const d2=new THREE.DirectionalLight(0xffffff,0.35);d2.position.set(-10,-6,10);scene.add(d2);
+    ready=true;return true;
+  }
+  const matCache={};
+  function mat(hex){if(!matCache[hex])matCache[hex]=new THREE.MeshLambertMaterial({color:hex});return matCache[hex]}
+  function texMat(cv){const t=new THREE.CanvasTexture(cv);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;
+    curTex=t;curCv=cv;
+    return new THREE.MeshLambertMaterial({map:t,transparent:true,alphaTest:0.1,side:THREE.DoubleSide})}
+  function clear(){curTex=null;curCv=null;if(group){scene.remove(group);group.traverse(o=>{if(o.geometry)o.geometry.dispose()})}group=new THREE.Group()}
+  function fit(g,target){const b=new THREE.Box3().setFromObject(g);const s=new THREE.Vector3();b.getSize(s);const c=new THREE.Vector3();b.getCenter(c);
+    const k=target/Math.max(s.x,s.y,s.z,0.001);const wrap=new THREE.Group();g.position.sub(c);wrap.add(g);wrap.scale.set(k,k,k);return wrap}
+  function start(tiltX){scene.add(group);cancelAnimationFrame(raf);
+    (function loop(){if(auto)rotY+=0.012;group.rotation.y=rotY;group.rotation.x=tiltX+tiltExtra;renderer.render(scene,camera);raf=requestAnimationFrame(loop)})()}
+  // item : chaque pixel opaque devient un petit cube (comme un item tenu en main)
+  function renderItem(pixels,w,h){
+    if(!ready&&!init())return;clear();
+    const box=new THREE.BoxGeometry(1,1,1.4);const inner=new THREE.Group();
+    if(pixels){for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=(y*w+x)*4;if(pixels[i+3]<40)continue;
+        const m=new THREE.Mesh(box,mat((pixels[i]<<16)|(pixels[i+1]<<8)|pixels[i+2]));m.position.set(x-w/2+0.5,(h-1-y)-h/2+0.5,0);inner.add(m)}}
+    else inner.add(new THREE.Mesh(new THREE.BoxGeometry(12,12,1.4),mat(0x444a55)));
+    group=fit(inner,15);start(0.18);
+  }
+  // bloc : un cube avec la texture sur les 6 faces
+  function renderCube(pixels,w,h){
+    if(!ready&&!init())return;clear();
+    const m=pixels?texMat(pixelsToCanvas(pixels,w,h)):mat(0x444a55);
+    group=new THREE.Group();group.add(new THREE.Mesh(new THREE.BoxGeometry(11,11,11),m));start(0.45);
+  }
+  // mob : geometrie Bedrock (os + cubes, UV "box") avec sa texture
+  function renderModel(geo,pixels,w,h){
+    if(!ready&&!init())return;clear();
+    if(!geo||!geo.bones){renderCube(pixels,w,h);return}
+    const tw=geo.tw||w,th=geo.th||h;const m=pixels?texMat(pixelsToCanvas(pixels,w,h)):mat(0x888888);
+    const D=Math.PI/180;const root=new THREE.Group();const groups={};
+    const faceRect=(geom,fi,x0,y0,fw,fh,mir)=>{const uv=geom.attributes.uv;let u0=x0/tw,u1=(x0+fw)/tw;if(mir)[u0,u1]=[u1,u0];
+      const vt=1-y0/th,vb=1-(y0+fh)/th;const k=fi*4;uv.setXY(k,u0,vt);uv.setXY(k+1,u1,vt);uv.setXY(k+2,u0,vb);uv.setXY(k+3,u1,vb)};
+    const pivot=b=>b.pivot||[0,0,0];
+    for(const b of geo.bones){const g=new THREE.Group();g.userData.b=b;groups[b.name]=g}
+    for(const b of geo.bones){
+      const g=groups[b.name],p=pivot(b),par=b.parent&&groups[b.parent]?groups[b.parent]:null,pp=par?pivot(par.userData.b):[0,0,0];
+      g.position.set(-(p[0]-pp[0]),p[1]-pp[1],p[2]-pp[2]);
+      if(b.rotation)g.rotation.set(-b.rotation[0]*D,-b.rotation[1]*D,b.rotation[2]*D,'ZYX');
+      (par||root).add(g);
+      if(b.neverRender)continue;
+      for(const c of b.cubes||[]){
+        const s=c.size||[1,1,1],o=c.origin||[0,0,0],inf=c.inflate||0,mir=!!(c.mirror??b.mirror);
+        const geom=new THREE.BoxGeometry(Math.max(s[0]+inf*2,0.01),Math.max(s[1]+inf*2,0.01),Math.max(s[2]+inf*2,0.01));
+        if(Array.isArray(c.uv)){const[u,v]=c.uv,[sx,sy,sz]=s.map(Math.floor);
+          faceRect(geom,0,u+sz+sx,v+sz,sz,sy,mir);faceRect(geom,1,u,v+sz,sz,sy,mir);
+          faceRect(geom,2,u+sz,v,sx,sz,mir);faceRect(geom,3,u+sz+sx,v,sx,sz,mir);
+          faceRect(geom,4,u+2*sz+sx,v+sz,sx,sy,mir);faceRect(geom,5,u+sz,v+sz,sx,sy,mir);}
+        else if(c.uv&&typeof c.uv==='object'){const F={west:0,east:1,up:2,down:3,south:4,north:5};
+          for(const[k,fi]of Object.entries(F)){const f=c.uv[k];if(f&&f.uv)faceRect(geom,fi,f.uv[0],f.uv[1],(f.uv_size||[0,0])[0],(f.uv_size||[0,0])[1],false)}}
+        const mesh=new THREE.Mesh(geom,m);
+        const cx=-(o[0]+s[0]/2),cy=o[1]+s[1]/2,cz=o[2]+s[2]/2;
+        if(c.rotation){const cp=c.pivot||p;const cg=new THREE.Group();cg.position.set(-cp[0]+p[0],cp[1]-p[1],cp[2]-p[2]);
+          cg.rotation.set(-c.rotation[0]*D,-c.rotation[1]*D,c.rotation[2]*D,'ZYX');mesh.position.set(cx+cp[0],cy-cp[1],cz-cp[2]);cg.add(mesh);g.add(cg)}
+        else{mesh.position.set(cx+p[0],cy-p[1],cz-p[2]);g.add(mesh)}
+      }
+    }
+    root.rotation.y=Math.PI;group=fit(root,17);start(0.12);
+  }
+  function render(pixels,size){renderItem(pixels,size,size)} // compat
+  function stop(){cancelAnimationFrame(raf)}
+  function dispose(){stop();try{renderer&&renderer.dispose();renderer&&renderer.forceContextLoss&&renderer.forceContextLoss()}catch{}}
+  // met juste a jour la texture (sans reconstruire le modele ni remettre la rotation a zero)
+  function updateTexture(pixels,w,h){if(!curTex||!curCv||curCv.width!==w||curCv.height!==h)return false;
+    curCv.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(pixels),w,h),0,0);curTex.needsUpdate=true;return true}
+  // point de la texture sous la souris (u,v entre 0 et 1), ou null
+  function pick(cx,cy){if(!ready||!group)return null;const r=canvas.getBoundingClientRect();
+    const m=new THREE.Vector2(((cx-r.left)/r.width)*2-1,-((cy-r.top)/r.height)*2+1);
+    const rc=new THREE.Raycaster();rc.setFromCamera(m,camera);const hit=rc.intersectObject(group,true).find(h=>h.uv);
+    return hit?{u:hit.uv.x,v:hit.uv.y}:null}
+  function setAuto(a){auto=a}
+  function rotate(dy,dx){rotY+=dy;tiltExtra=Math.max(-1.2,Math.min(1.2,tiltExtra+(dx||0)))}
+  return {render,renderItem,renderCube,renderModel,stop,dispose,updateTexture,pick,setAuto,rotate};
+}
+
+// charge une image et renvoie {w,h,size,data} (RGBA), ou null
+function imgToPixels(src){
+  return new Promise(res=>{
+    if(!src)return res(null);
+    const img=new Image();img.crossOrigin='anonymous';
+    img.onload=()=>{const w=img.naturalWidth||16,h=img.naturalHeight||16;const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      const cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;cx.drawImage(img,0,0,w,h);
+      try{res({w,h,size:w,data:cx.getImageData(0,0,w,h).data})}catch{res(null)}};
+    img.onerror=()=>res(null);img.src=src;
+  });
+}
+// normalise une image importee : carre + puissance de 2 (exige par Bedrock pour items et blocs).
+// Garde les proportions (fond transparent). Les mobs n'utilisent PAS ceci (taille imposee par le modele).
+function nearPow2(n){let p=16;while(p<n&&p<512)p*=2;return Math.min(p,512)}
+function normalizeSquarePng(file,maxSize=256){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();img.onerror=()=>reject(new Error('Image illisible'));
+    img.onload=()=>{
+      const w=img.naturalWidth,h=img.naturalHeight;
+      const already=w===h&&(w&(w-1))===0&&w<=maxSize;
+      const S=already?w:Math.min(nearPow2(Math.max(w,h)),maxSize);
+      const cv=document.createElement('canvas');cv.width=cv.height=S;const cx=cv.getContext('2d');
+      const pixel=w<=64&&h<=64;cx.imageSmoothingEnabled=!pixel; // petite image = pixel art -> net
+      const r=Math.min(S/w,S/h),nw=Math.max(1,Math.round(w*r)),nh=Math.max(1,Math.round(h*r));
+      cx.drawImage(img,Math.round((S-nw)/2),Math.round((S-nh)/2),nw,nh);
+      cv.toBlob(b=>resolve({blob:b,changed:!already,from:[w,h],to:S}),'image/png');
+    };
+    img.src=URL.createObjectURL(file);
+  });
+}
+async function uploadImageNormalized(file,saveAs){
+  const n=await normalizeSquarePng(file);
+  await api('POST','/api/projects/'+state.project.id+'/texture?file='+encodeURIComponent(saveAs),await n.blob.arrayBuffer(),true);
+  if(n.changed)toast(`Image redimensionnée en ${n.to}×${n.to} (Bedrock exige du carré)`);
+  return n;
+}
+const texUrl=(file)=>BASE+'api/projects/'+state.project.id+'/texture-file?file='+encodeURIComponent(file)+'&t='+Date.now();
+const _geoCache={};
+const _skinGeoCache={};
+async function skinGeo(model){if(!_skinGeoCache[model]){try{_skinGeoCache[model]=await api('GET','/api/skin/'+model+'/geo')}catch{_skinGeoCache[model]=null}}return _skinGeoCache[model]}
+async function mobGeo(base){if(!_geoCache[base]){try{_geoCache[base]=await api('GET','/api/mobbases/'+base+'/geo.json')}catch{_geoCache[base]=null}}return _geoCache[base]}
+
+// ============ Éditeur pixel par pixel (items, blocs, mobs, galerie) ============
+const PX={w:16,h:16,tool:'pen',color:'#49c661',data:null,opts:null,viewer:null,
+  mode:'flat',parts:[],part:0,face:0,zoom:1,brush:1,undo:[],autoRot:true,shown:false,
+  palette:['#000000','#ffffff','#7f7f7f','#c0c0c0','#e5534b','#e3b341','#49c661','#4aa3ff',
+           '#8e44ad','#d35400','#16a085','#2c3e50','#f1c40f','#e91e63','#95a5a6','#00000000']};
+function pxIdx(x,y){return (y*PX.w+x)*4}
+// ----- modèles de départ (toujours dessinés en 16×16, modifiables ensuite) -----
+function tplBuf(){return new Uint8ClampedArray(16*16*4)}
+function TP(b,x,y,c){if(x<0||y<0||x>15||y>15||!c)return;const i=(y*16+x)*4;b[i]=c[0];b[i+1]=c[1];b[i+2]=c[2];b[i+3]=c[3]===undefined?255:c[3]}
+function tplDisc(b,cx,cy,r,fill,edge,hi){for(let y=0;y<16;y++)for(let x=0;x<16;x++){const d=Math.hypot(x-cx,y-cy);if(d<=r){TP(b,x,y,d>r-1.05?edge:fill);if(hi&&d<r-1.05&&(x-cx)<-0.5&&(y-cy)<-0.5&&d>r-3)TP(b,x,y,hi)}}}
+const TPL={
+  gem(){const b=tplBuf();for(let y=0;y<16;y++)for(let x=0;x<16;x++){const d=Math.abs(x-7.5)/5.5+Math.abs(y-7.5)/6.5;if(d<=1)TP(b,x,y,d>0.8?[30,120,160]:[90,200,235])}for(let y=3;y<9;y++)TP(b,6,y,[205,245,255]);return b},
+  coin(){const b=tplBuf();tplDisc(b,7.5,7.5,6.2,[244,196,48],[176,120,20],[255,236,150]);for(let y=5;y<11;y++)TP(b,7,y,[176,120,20]);TP(b,6,7,[176,120,20]);TP(b,8,7,[176,120,20]);return b},
+  ingot(){const b=tplBuf();for(let y=5;y<12;y++)for(let x=2;x<14;x++){const top=(y===5),bot=(y===11),side=(x===2||x===13);TP(b,x,y,(top||bot||side)?[150,100,16]:[244,196,48])}for(let x=3;x<13;x++)TP(b,x,6,[255,230,140]);return b},
+  apple(){const b=tplBuf();tplDisc(b,7.5,9,5.3,[214,58,58],[150,32,32],[245,130,130]);TP(b,8,3,[74,47,23]);TP(b,8,4,[74,47,23]);TP(b,9,3,[73,198,97]);TP(b,10,4,[73,198,97]);TP(b,9,4,[40,150,70]);return b},
+  ball(){const b=tplBuf();tplDisc(b,7.5,7.5,6,[73,163,255],[30,90,180],[180,215,255]);return b},
+  potion(){const b=tplBuf();for(let y=2;y<5;y++){TP(b,7,y,[120,80,40]);TP(b,8,y,[120,80,40])}
+    tplDisc(b,7.5,10,4.6,[120,120,130],[70,70,80]);
+    for(let y=8;y<14;y++)for(let x=4;x<12;x++){if(Math.hypot(x-7.5,y-10)<=3.4)TP(b,x,y,[214,58,120])}return b},
+  sword(){const b=tplBuf();for(let k=0;k<3;k++)TP(b,2+k,13-k,[74,47,23]);TP(b,1,14,[74,47,23]);TP(b,4,11,[120,120,120]);TP(b,3,12,[120,120,120]);
+    for(let k=0;k<9;k++){TP(b,5+k,10-k,[210,210,220]);TP(b,4+k,10-k,[160,160,170])}TP(b,13,2,[255,255,255]);return b},
+  stick(){const b=tplBuf();for(let y=2;y<14;y++){TP(b,7,y,[122,82,48]);TP(b,8,y,[90,58,33])}TP(b,7,2,[150,105,60]);return b},
+  heart(){const b=tplBuf();for(let y=0;y<16;y++)for(let x=0;x<16;x++){const X=(x-7.5)/6,Y=(y-6.5)/6;const h=Math.pow(X*X+Y*Y-0.45,3)-X*X*Y*Y*Y;if(h<0)TP(b,x,y,[229,66,66])}return b},
+  key(){const b=tplBuf();tplDisc(b,5,5,3,[244,196,48],[176,120,20]);TP(b,5,5,[0,0,0,0]);TP(b,4,5,[0,0,0,0]);for(let k=0;k<7;k++)TP(b,7+k,7+k,[244,196,48]);TP(b,13,13,[244,196,48]);TP(b,12,14,[244,196,48]);TP(b,11,12,[244,196,48]);return b},
+  // blocs (16x16, motifs qui se repetent bien)
+  stone(){const b=tplBuf();for(let y=0;y<16;y++)for(let x=0;x<16;x++){const n=((x*7+y*13)^(x*y))%9;TP(b,x,y,n<2?[110,110,110]:n<6?[128,128,128]:[145,145,145])}return b},
+  bricks(){const b=tplBuf();for(let y=0;y<16;y++)for(let x=0;x<16;x++){const row=Math.floor(y/4),off=row%2?4:0,mortar=(y%4===3)||((x+off)%8===7);TP(b,x,y,mortar?[190,180,170]:[150,70,55])}return b},
+  planks(){const b=tplBuf();for(let y=0;y<16;y++)for(let x=0;x<16;x++){const seam=y%4===3,n=(x*3+y)%7;TP(b,x,y,seam?[110,80,45]:n<2?[170,130,80]:[185,145,90])}return b},
+  ore(){const b=TPL.stone();[[3,3],[4,3],[3,4],[10,5],[11,5],[11,6],[6,11],[7,11],[7,12],[12,12]].forEach(([x,y])=>TP(b,x,y,[216,58,58]));return b},
+};
+// ----- faces des modeles (mobs, skins) : calculees depuis la geometrie Bedrock (UV "box" ou par face) -----
+const BONE_FR={head:'Tête',hat:'Chapeau / casque',helmet:'Casque',body:'Corps',jacket:'Veste',waist:'Taille',
+  leftarm:'Bras gauche',rightarm:'Bras droit',leftsleeve:'Manche gauche',rightsleeve:'Manche droite',
+  leftleg:'Jambe gauche',rightleg:'Jambe droite',leftpants:'Pantalon gauche',rightpants:'Pantalon droit',
+  leg0:'Patte arrière droite',leg1:'Patte arrière gauche',leg2:'Patte avant droite',leg3:'Patte avant gauche',
+  rightarm_ov:'Manche droite (calque)',leftarm_ov:'Manche gauche (calque)',rightleg_ov:'Pantalon droit (calque)',leftleg_ov:'Pantalon gauche (calque)',
+  tail:'Queue',nose:'Nez',ears:'Oreilles',arms:'Bras',mane:'Crinière',snout:'Museau',horns:'Cornes',cape:'Cape'};
+const boneLabel=n=>BONE_FR[String(n).toLowerCase()]||n;
+const FACE_FR=[['north','Devant'],['south','Derrière'],['east','Côté droit'],['west','Côté gauche'],['up','Dessus'],['down','Dessous']];
+function geoFaces(geo,W,H){
+  if(!geo||!geo.bones)return[];const kx=W/(geo.tw||W),ky=H/(geo.th||H);const parts=[],seen=new Map();
+  for(const b of geo.bones){if(b.neverRender)continue;const cubes=b.cubes||[];
+    cubes.forEach((c,ci)=>{const[X,Y,Z]=(c.size||[1,1,1]).map(v=>Math.floor(Math.abs(v)));let R={};
+      if(Array.isArray(c.uv)){const[u,v]=c.uv;
+        R={north:[u+Z,v+Z,X,Y],south:[u+2*Z+X,v+Z,X,Y],east:[u,v+Z,Z,Y],west:[u+Z+X,v+Z,Z,Y],up:[u+Z,v,X,Z],down:[u+Z+X,v,X,Z]}}
+      else if(c.uv&&typeof c.uv==='object'){for(const[k]of FACE_FR){const f=c.uv[k];if(f&&f.uv){const us=f.uv_size||[0,0];
+        R[k]=[Math.min(f.uv[0],f.uv[0]+us[0]),Math.min(f.uv[1],f.uv[1]+us[1]),Math.abs(us[0]),Math.abs(us[1])]}}}
+      const faces=[];for(const[k,lab]of FACE_FR){const r=R[k];if(!r)continue;
+        const x=Math.round(r[0]*kx),y=Math.round(r[1]*ky),w=Math.round(r[2]*kx),h=Math.round(r[3]*ky);
+        if(w<1||h<1||x<0||y<0||x+w>W||y+h>H)continue;faces.push({key:k,label:lab,x,y,w,h})}
+      if(!faces.length)return;const sig=faces.map(f=>[f.x,f.y,f.w,f.h].join()).join('|');const lab=boneLabel(b.name)+(cubes.length>1?` (${ci+1})`:'');
+      // deux parties qui partagent la meme texture (bras/jambes en miroir) : une seule entree "Bras droit + Bras gauche"
+      if(seen.has(sig)){const pp=seen.get(sig);if(!pp.label.split(' + ').includes(lab))pp.label+=' + '+lab;return}
+      const part={label:lab,faces};seen.set(sig,part);parts.push(part)})}
+  return parts}
+function pxRegion(){if(PX.mode==='face'){const p=PX.parts[PX.part],f=p&&p.faces[PX.face];if(f)return f}return{x:0,y:0,w:PX.w,h:PX.h}}
+function pxModeUI(){const has=PX.parts.length>0;$('#pxModeBar').style.display=has?'':'none';
+  document.querySelectorAll('#pxModeBar button').forEach(b=>b.classList.toggle('on',b.dataset.m===PX.mode));
+  $('#pxFaceBar').style.display=has&&PX.mode==='face'?'':'none';
+  if(has){$('#pxPart').innerHTML=PX.parts.map((p,i)=>`<option value="${i}" ${i===PX.part?'selected':''}>${esc(p.label)}</option>`).join('');
+    const p=PX.parts[PX.part]||PX.parts[0];
+    $('#pxFaces').innerHTML=p.faces.map((f,i)=>`<button type="button" data-f="${i}" class="${i===PX.face?'on':''}">${f.label} <span class="muted">${f.w}×${f.h}</span></button>`).join('');
+    document.querySelectorAll('#pxFaces button').forEach(b=>b.onclick=()=>{PX.face=+b.dataset.f;PX.zoom=1;pxModeUI();pxSetSizeUI();pxDraw()})}
+  const model=(PX.opts||{}).mode3d==='model'||(PX.opts||{}).mode3d==='cube';
+  $('#pxRot').style.display=model?'':'none';$('#view3d').classList.toggle('paint',model);
+  $('#pxViewLabel').textContent=model?'Aperçu 3D — clique dessus pour peindre (clic droit + glisser = tourner)':'Aperçu 3D (tourne tout seul)';
+  $('#pxHint').textContent=has?'Astuce : choisis « Par face » pour dessiner une face en grand, ou peins directement sur le modèle 3D. Molette sur le dessin = zoom.':'Molette sur le dessin = zoom.'}
+const PX_ZOOMS=[1,1.5,2,3,4,6,8];
+function pxSetSizeUI(){const cv=$('#pxcanvas');const R=pxRegion();const m=Math.max(R.w,R.h);const cell=Math.max(1,Math.floor(512/m));
+  cv.width=R.w*cell;cv.height=R.h*cell;
+  const base=Math.max(200,Math.min(420,($('#pxScroll').clientWidth||420)-6))*PX.zoom;
+  cv.style.width=Math.round(base*R.w/m)+'px';cv.style.height=Math.round(base*R.h/m)+'px';
+  const chk=Math.max(8,base/m);cv.style.backgroundSize=`${chk*2}px ${chk*2}px`;cv.style.backgroundPosition=`0 0,0 ${chk}px,${chk}px -${chk}px,-${chk}px 0`;
+  $('#pxZoomVal').textContent=Math.round(PX.zoom*100)+'%'}
+function px3d(){if(!PX.viewer)return;const o=PX.opts||{};
+  if((o.mode3d==='cube'||o.mode3d==='model')&&PX.shown&&PX.viewer.updateTexture(PX.data,PX.w,PX.h))return;
+  PX.shown=true;
+  if(o.mode3d==='cube')PX.viewer.renderCube(PX.data,PX.w,PX.h);
+  else if(o.mode3d==='model')PX.viewer.renderModel(o.geo,PX.data,PX.w,PX.h);
+  else PX.viewer.renderItem(PX.data,PX.w,PX.h)}
+let _px3dT=null;
+function pxDraw(){
+  const cv=$('#pxcanvas'),cx=cv.getContext('2d');cx.clearRect(0,0,cv.width,cv.height);
+  const R=pxRegion(),cell=cv.width/R.w;cx.imageSmoothingEnabled=false;
+  for(let y=0;y<R.h;y++)for(let x=0;x<R.w;x++){
+    const i=pxIdx(R.x+x,R.y+y),a=PX.data[i+3];if(a===0)continue;
+    cx.fillStyle=`rgba(${PX.data[i]},${PX.data[i+1]},${PX.data[i+2]},${a/255})`;
+    cx.fillRect(x*cell,y*cell,cell,cell);
+  }
+  if(cell>=6){cx.strokeStyle='rgba(255,255,255,.07)';cx.lineWidth=1;
+    for(let k=0;k<=R.w;k++){cx.beginPath();cx.moveTo(k*cell,0);cx.lineTo(k*cell,cv.height);cx.stroke()}
+    for(let k=0;k<=R.h;k++){cx.beginPath();cx.moveTo(0,k*cell);cx.lineTo(cv.width,k*cell);cx.stroke()}}
+  // texture entiere d'un modele : contour de chaque face pour se reperer
+  if(PX.mode!=='face'&&PX.parts.length){cx.strokeStyle='rgba(255,210,80,.45)';cx.lineWidth=Math.max(1,cell/6);
+    for(const p of PX.parts)for(const f of p.faces)cx.strokeRect(f.x*cell+0.5,f.y*cell+0.5,f.w*cell-1,f.h*cell-1)}
+  clearTimeout(_px3dT);_px3dT=setTimeout(px3d,PX.w*PX.h>1024?250:30); // grandes textures : 3D un peu differee
+}
+function hexToRgba(h){if(h==='#00000000')return[0,0,0,0];const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255,255]}
+function pxSet(x,y,rgba){const i=pxIdx(x,y);PX.data[i]=rgba[0];PX.data[i+1]=rgba[1];PX.data[i+2]=rgba[2];PX.data[i+3]=rgba[3]}
+function pxFill(x,y,target,B){B=B||{x:0,y:0,w:PX.w,h:PX.h};
+  const i0=pxIdx(x,y),src=[PX.data[i0],PX.data[i0+1],PX.data[i0+2],PX.data[i0+3]];
+  if(src.join()===target.join())return;const st=[[x,y]];
+  while(st.length){const[cx,cy]=st.pop();if(cx<B.x||cy<B.y||cx>=B.x+B.w||cy>=B.y+B.h)continue;
+    const i=pxIdx(cx,cy);if(PX.data[i]!==src[0]||PX.data[i+1]!==src[1]||PX.data[i+2]!==src[2]||PX.data[i+3]!==src[3])continue;
+    pxSet(cx,cy,target);st.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1])}
+}
+function pxAt(e){const cv=$('#pxcanvas'),r=cv.getBoundingClientRect(),R=pxRegion();
+  const lx=Math.floor((e.clientX-r.left)/r.width*R.w),ly=Math.floor((e.clientY-r.top)/r.height*R.h);
+  if(lx<0||ly<0||lx>=R.w||ly>=R.h)return[-1,-1];return[R.x+lx,R.y+ly]}
+// face (rectangle de texture) qui contient le pixel x,y, sinon toute la texture
+function pxFaceAt(x,y){for(const p of PX.parts)for(const f of p.faces)if(x>=f.x&&y>=f.y&&x<f.x+f.w&&y<f.y+f.h)return f;return{x:0,y:0,w:PX.w,h:PX.h}}
+function pxApplyAt(x,y,B){if(x<0||y<0||x>=PX.w||y>=PX.h)return;
+  if(PX.tool==='pen'||PX.tool==='erase'){const c=PX.tool==='pen'?hexToRgba(PX.color):[0,0,0,0];const o=Math.floor((PX.brush-1)/2);
+    for(let dy=0;dy<PX.brush;dy++)for(let dx=0;dx<PX.brush;dx++){const X=x-o+dx,Y=y-o+dy;
+      if(X>=B.x&&Y>=B.y&&X<B.x+B.w&&Y<B.y+B.h)pxSet(X,Y,c)}}
+  else if(PX.tool==='fill')pxFill(x,y,hexToRgba(PX.color),B);
+  else if(PX.tool==='pick'){const i=pxIdx(x,y);if(PX.data[i+3]>0){PX.color='#'+[PX.data[i],PX.data[i+1],PX.data[i+2]].map(v=>v.toString(16).padStart(2,'0')).join('');$('#pxColor').value=PX.color}}
+  pxDraw()}
+function pxApply(e){const[x,y]=pxAt(e);if(x<0)return;
+  // en mode « texture entiere » le pot ne deborde pas sur la face d'a cote
+  pxApplyAt(x,y,PX.mode==='face'?pxRegion():(PX.tool==='fill'&&PX.parts.length?pxFaceAt(x,y):{x:0,y:0,w:PX.w,h:PX.h}))}
+function pxPushUndo(){PX.undo.push(new Uint8ClampedArray(PX.data));if(PX.undo.length>40)PX.undo.shift()}
+// opts : {title, file (texture existante), loadUrl (sinon), fallbackUrl, w, h, sizes:[16,32] ou null (taille fixe),
+//         templates:bool, mode3d:'item'|'cube'|'model', geo, saveAs:'nom.png', onSaved(fname)}
+async function openPixelEditor(arg){
+  let o=arg;
+  if(arg&&arg.identifier&&!arg.saveAs){const it=arg;const key=it.identifier.split(':')[1];
+    o={title:noColor(it.displayName),file:it.textureFile,w:16,h:16,sizes:[16,32],templates:true,mode3d:'item',saveAs:key+'.png',
+       onSaved:async f=>{it.textureFile=f;it.textureKey=key;await save(true);render()}}}
+  PX.opts=o;$('#pxTitle').textContent='🎨 Dessiner — '+(o.title||'texture');
+  let loaded=null;
+  if(o.file)loaded=await imgToPixels(texUrl(o.file));
+  if(!loaded&&o.loadUrl)loaded=await imgToPixels(o.loadUrl);
+  if(loaded){PX.w=loaded.w;PX.h=loaded.h;PX.data=new Uint8ClampedArray(loaded.data)}
+  else{PX.w=o.w||16;PX.h=o.h||16;PX.data=new Uint8ClampedArray(PX.w*PX.h*4)}
+  // choix de taille (items/blocs) ou taille fixe (mobs)
+  const sz=$('#pxSize');
+  if(o.sizes){sz.disabled=false;sz.innerHTML=o.sizes.map(n=>`<option value="${n}">${n} × ${n}</option>`).join('');if(o.sizes.includes(PX.w))sz.value=String(PX.w)}
+  else{sz.disabled=true;sz.innerHTML=`<option>${PX.w} × ${PX.h} (taille du modèle)</option>`}
+  $('#pxTemplate').closest('label')?.classList;$('#pxTplWrap').style.display=o.templates?'':'none';
+  $('#pxSwatches').innerHTML=PX.palette.map(c=>`<div class="sw ${c===PX.color?'on':''}" style="background:${c==='#00000000'?'transparent':c};${c==='#00000000'?'background-image:linear-gradient(45deg,#777 25%,transparent 25%,transparent 75%,#777 75%);background-size:8px 8px':''}" data-c="${c}"></div>`).join('');
+  document.querySelectorAll('#pxSwatches .sw').forEach(s=>s.onclick=()=>{PX.color=s.dataset.c;if(PX.color!=='#00000000')$('#pxColor').value=PX.color;document.querySelectorAll('#pxSwatches .sw').forEach(x=>x.classList.remove('on'));s.classList.add('on')});
+  if(!PX.viewer)PX.viewer=makeViewer($('#view3d'));
+  PX.parts=o.mode3d==='model'?geoFaces(o.geo,PX.w,PX.h):[];PX.mode='flat';PX.part=0;PX.face=0;PX.zoom=1;PX.undo=[];PX.shown=false;
+  $('#pxTemplate').value='';$('#pxModal').classList.add('show');
+  pxModeUI();pxSetSizeUI();pxDraw();
+}
+(function wirePixelEditor(){
+  let down=false;const cv=$('#pxcanvas');
+  cv.addEventListener('pointerdown',e=>{down=true;cv.setPointerCapture(e.pointerId);if(PX.tool!=='pick')pxPushUndo();pxApply(e)});
+  cv.addEventListener('pointermove',e=>{if(down&&(PX.tool==='pen'||PX.tool==='erase'))pxApply(e)});
+  cv.addEventListener('pointerup',()=>down=false);
+  document.querySelectorAll('#pxTools button').forEach(b=>b.onclick=()=>{PX.tool=b.dataset.t;document.querySelectorAll('#pxTools button').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+  $('#pxColor').oninput=()=>{PX.color=$('#pxColor').value;document.querySelectorAll('#pxSwatches .sw').forEach(x=>x.classList.remove('on'))};
+  $('#pxSize').onchange=()=>{const ns=parseInt($('#pxSize').value);if(!ns)return;
+    if(PX.data.some((v,i)=>i%4===3&&v>0)&&!confirm('Changer la taille efface ton dessin. Continuer ?')){$('#pxSize').value=String(PX.w);return}
+    PX.w=PX.h=ns;PX.data=new Uint8ClampedArray(ns*ns*4);PX.undo=[];PX.shown=false;pxSetSizeUI();pxDraw()};
+  $('#pxTemplate').onchange=()=>{const t=$('#pxTemplate').value;if(!t)return;
+    if(PX.data.some((v,i)=>i%4===3&&v>0)&&!confirm('Charger ce modèle ? Ton dessin actuel sera remplacé.')){$('#pxTemplate').value='';return}
+    pxPushUndo();PX.w=PX.h=16;if(PX.opts.sizes)$('#pxSize').value='16';PX.data=TPL[t]();PX.undo=[];PX.shown=false;pxSetSizeUI();pxDraw()};
+  $('#pxClear').onclick=()=>{if(!confirm('Tout effacer ?'))return;pxPushUndo();PX.data=new Uint8ClampedArray(PX.w*PX.h*4);pxDraw()};
+  // annuler
+  const undo=()=>{const u=PX.undo.pop();if(u&&u.length===PX.data.length){PX.data=u;pxDraw()}};
+  $('#pxUndo').onclick=undo;
+  document.addEventListener('keydown',e=>{if($('#pxModal').classList.contains('show')&&(e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo()}});
+  // mode texture entiere / par face
+  document.querySelectorAll('#pxModeBar button').forEach(b=>b.onclick=()=>{PX.mode=b.dataset.m;PX.zoom=1;pxModeUI();pxSetSizeUI();pxDraw()});
+  $('#pxPart').onchange=()=>{PX.part=+$('#pxPart').value;PX.face=0;PX.zoom=1;pxModeUI();pxSetSizeUI();pxDraw()};
+  // zoom (boutons + molette sur le dessin)
+  const zoom=d=>{let i=PX_ZOOMS.indexOf(PX.zoom);if(i<0)i=0;i=Math.max(0,Math.min(PX_ZOOMS.length-1,i+d));if(PX_ZOOMS[i]===PX.zoom)return;
+    const sc=$('#pxScroll'),fx=(sc.scrollLeft+sc.clientWidth/2)/Math.max(1,sc.scrollWidth),fy=(sc.scrollTop+sc.clientHeight/2)/Math.max(1,sc.scrollHeight);
+    PX.zoom=PX_ZOOMS[i];pxSetSizeUI();sc.scrollLeft=fx*sc.scrollWidth-sc.clientWidth/2;sc.scrollTop=fy*sc.scrollHeight-sc.clientHeight/2};
+  $('#pxZoomIn').onclick=()=>zoom(1);$('#pxZoomOut').onclick=()=>zoom(-1);
+  $('#pxScroll').addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1:-1)},{passive:false});
+  // taille du pinceau
+  document.querySelectorAll('#pxBrush button').forEach(b=>b.onclick=()=>{PX.brush=+b.dataset.b;document.querySelectorAll('#pxBrush button').forEach(x=>x.classList.toggle('on',x===b))});
+  // rotation de l'apercu
+  document.querySelectorAll('#pxRot button').forEach(b=>b.onclick=()=>{const r=+b.dataset.r;if(!PX.viewer)return;
+    if(r===0){PX.autoRot=!PX.autoRot;b.classList.toggle('on',PX.autoRot);PX.viewer.setAuto(PX.autoRot)}
+    else{PX.autoRot=false;$('#pxRot [data-r="0"]').classList.remove('on');PX.viewer.setAuto(false);PX.viewer.rotate(r*Math.PI/4)}});
+  // peindre directement sur le modele 3D (clic gauche) / tourner (clic droit + glisser)
+  const v3=$('#view3d');let paint3=false,turn=null;
+  const can3=()=>{const m=(PX.opts||{}).mode3d;return m==='model'||m==='cube'};
+  const paintAt3=(e,first)=>{const h=PX.viewer&&PX.viewer.pick(e.clientX,e.clientY);if(!h)return;
+    const x=Math.min(PX.w-1,Math.max(0,Math.floor(h.u*PX.w))),y=Math.min(PX.h-1,Math.max(0,Math.floor((1-h.v)*PX.h)));
+    const f=PX.parts.length?pxFaceAt(x,y):{x:0,y:0,w:PX.w,h:PX.h};
+    // en mode « par face », un clic sur le modele selectionne la face touchee
+    if(first&&PX.mode==='face'&&PX.parts.length){PX.parts.forEach((p,pi)=>p.faces.forEach((ff,fi)=>{if(ff===f){PX.part=pi;PX.face=fi}}));pxModeUI();pxSetSizeUI()}
+    pxApplyAt(x,y,f)};
+  v3.addEventListener('contextmenu',e=>e.preventDefault());
+  v3.addEventListener('pointerenter',()=>{if(can3()&&PX.viewer)PX.viewer.setAuto(false)});
+  v3.addEventListener('pointerleave',()=>{if(PX.viewer)PX.viewer.setAuto(PX.autoRot);paint3=false;turn=null});
+  v3.addEventListener('pointerdown',e=>{if(!can3())return;v3.setPointerCapture(e.pointerId);
+    if(e.button===2||e.shiftKey){turn=[e.clientX,e.clientY];return}
+    paint3=true;if(PX.tool!=='pick')pxPushUndo();paintAt3(e,true)});
+  v3.addEventListener('pointermove',e=>{if(turn){PX.viewer.rotate((e.clientX-turn[0])*0.01,(e.clientY-turn[1])*0.01);turn=[e.clientX,e.clientY];return}
+    if(paint3&&(PX.tool==='pen'||PX.tool==='erase'))paintAt3(e,false)});
+  v3.addEventListener('pointerup',()=>{paint3=false;turn=null});
+  $('#pxCancel').onclick=()=>{$('#pxModal').classList.remove('show');if(PX.viewer)PX.viewer.stop()};
+  $('#pxSave').onclick=async()=>{
+    const cv2=pixelsToCanvas(PX.data,PX.w,PX.h);
+    const blob=await new Promise(r=>cv2.toBlob(r,'image/png'));
+    const fname=PX.opts.saveAs;
+    try{await api('POST','/api/projects/'+state.project.id+'/texture?file='+encodeURIComponent(fname),await blob.arrayBuffer(),true);
+      $('#pxModal').classList.remove('show');if(PX.viewer)PX.viewer.stop();toast('Texture enregistrée ✔');
+      if(PX.opts.onSaved)await PX.opts.onSaved(fname)}catch(e){toast(e.message,true)}
+  };
+})();
+
+// ============ Sélecteur d'ingrédients (tous les items Minecraft) ============
+let MCITEMS=[],MCBYID={};
+(async()=>{try{MCITEMS=await api('GET','/mcitems.json');MCBYID={};for(const it of MCITEMS)MCBYID[it.id]=it}catch(e){console.warn('liste items:',e)}})();
+// items du projet (bc:...) pour les proposer aussi comme ingredients/resultats
+function projItemsAsPick(){return (state.project?.items||[]).map(i=>({id:i.identifier,nom:noColor(i.displayName),en:i.identifier,icone:null,custom:true}))}
+function iconHtml(id,cls){
+  cls=cls||'icoimg';
+  const mc=MCBYID[id];
+  if(mc&&mc.icone)return `<img class="${cls}" src="${BASE}mcicons/${mc.icone}" loading="lazy">`;
+  const pi=(state.project?.items||[]).find(i=>i.identifier===id);
+  if(pi&&pi.textureFile)return `<img class="${cls}" src="${BASE}api/projects/${state.project.id}/texture-file?file=${encodeURIComponent(pi.textureFile)}" loading="lazy">`;
+  return `<span class="${cls}" style="display:inline-block;background:repeating-conic-gradient(#f700ff 0 25%,#000 0 50%) 50%/13px 13px;border-radius:3px"></span>`;
+}
+function itemLabel(id){const mc=MCBYID[id];if(mc)return mc.nom;const pi=(state.project?.items||[]).find(i=>i.identifier===id);return pi?noColor(pi.displayName):id}
+let _onPick=null;
+function openPicker(title,onPick){
+  _onPick=onPick;$('#pickTitle').textContent=title||'Choisir un item';
+  $('#pickSearch').value='';$('#pickModal').classList.add('show');
+  renderPick('');setTimeout(()=>$('#pickSearch').focus(),50);
+}
+function renderPick(q){
+  q=(q||'').toLowerCase().trim();
+  const all=projItemsAsPick().concat(MCITEMS);
+  let res=q?all.filter(it=>it.nom.toLowerCase().includes(q)||it.id.toLowerCase().includes(q)||(it.en||'').toLowerCase().includes(q)):all;
+  const total=res.length;res=res.slice(0,250);
+  $('#pickList').innerHTML=res.map(it=>`<div class="pk" data-id="${it.id}">
+    ${it.icone?`<img src="${BASE}mcicons/${it.icone}" loading="lazy">`:(it.custom?iconHtml(it.id,'ph2'):'<span class="ph"></span>')}
+    <div style="flex:1"><b>${esc(it.nom)}</b> ${it.custom?'<span class="tag">ton item</span>':''}<div><code>${it.id}</code></div></div>
+  </div>`).join('')+(total>250?`<div class="muted" style="padding:10px;text-align:center">… ${total-250} autres — précise ta recherche</div>`:(total===0?'<div class="empty">Aucun résultat</div>':''));
+  document.querySelectorAll('#pickList .pk').forEach(el=>el.onclick=()=>{const cb=_onPick;$('#pickModal').classList.remove('show');if(cb)cb(el.dataset.id)});
+  // icones custom (projet) chargees via iconHtml
+  document.querySelectorAll('#pickList .pk .ph2').forEach(()=>{});
+}
+$('#pickSearch').oninput=()=>renderPick($('#pickSearch').value);
+$('#pickClose').onclick=()=>$('#pickModal').classList.remove('show');
+$('#pickVide').onclick=()=>{const cb=_onPick;$('#pickModal').classList.remove('show');if(cb)cb('')};
+
+// Initial rendering is handled by studio.js.
+</script>
+
+<script>
+/* ===== Habillage Minecraft (n'influence pas la logique du studio) =====
+   1) emojis -> vraies icones d'items Minecraft (texte, titres, boutons) ; retires des <option> (pas d'image possible)
+   2) animation d'entree seulement quand on change de page
+   3) texte jaune facon ecran titre */
+(()=>{
+  const MAP={'🎨':'painting','💾':'writable_book','➕':'crafting_table','🧱':'brick','⚔':'diamond_sword','⛏':'diamond_pickaxe','🐷':'pig_spawn_egg',
+    '❤':'golden_apple','↩':'recovery_compass','🔥':'blaze_powder','📁':'chest','🚀':'elytra','🕐':'clock','🔊':'noteblock','🪵':'oak_log',
+    '✏':'feather','📦':'chest','🪓':'iron_axe','⚡':'lightning_rod','📥':'hopper','⬇':'hopper','🔁':'repeater','🛠':'crafting_table',
+    '🎁':'bundle','🧍':'armor_stand','🔎':'spyglass','🗺':'filled_map','🧩':'frame','💎':'diamond','🪙':'gold_nugget','🍎':'apple',
+    '🔵':'snowball','⚗':'experience_bottle','🗝':'tripwire_hook','🪨':'cobblestone','🧽':'sponge','🪣':'bucket','💉':'brush',
+    '🥄':'iron_shovel','🌾':'wheat','✨':'nether_star','🌀':'ender_pearl','💚':'emerald','💨':'wind_charge','🩺':'paper','📤':'dropper',
+    '👑':'nether_star','🗑':'lava_bucket','⬆':'piston','⚠':'tnt'};
+  const keys=Object.keys(MAP).sort((a,b)=>b.length-a.length);
+  const RX=new RegExp('('+keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\uFE0F?','gu');
+  const SKIP=new Set(['SCRIPT','STYLE','TEXTAREA','PRE','CODE','INPUT','CANVAS']);
+  function swap(root){
+    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null),todo=[];
+    let n;while((n=w.nextNode())){RX.lastIndex=0;if(RX.test(n.nodeValue))todo.push(n)}
+    for(const t of todo){
+      const par=t.parentNode;if(!par||SKIP.has(par.nodeName))continue;
+      if(par.nodeName==='OPTION'||par.nodeName==='SELECT'||(par.closest&&par.closest('.warn,.ok,.err'))){t.nodeValue=t.nodeValue.replace(RX,'').replace(/^\s+/,'');continue}
+      const f=document.createDocumentFragment();let last=0;RX.lastIndex=0;let m;const v=t.nodeValue;
+      while((m=RX.exec(v))){if(m.index>last)f.append(v.slice(last,m.index));
+        const im=document.createElement('img');im.className='mci';im.alt='';im.src='mcicons/'+MAP[m[1]]+'.png';f.append(im);last=m.index+m[0].length}
+      if(last<v.length)f.append(v.slice(last));
+      par.replaceChild(f,t);
+    }
+  }
+  let pend=false;
+  const obs=new MutationObserver(()=>{if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;swap(document.body)})});
+  swap(document.body);obs.observe(document.body,{childList:true,subtree:true,characterData:true});
+  // animation d'entree quand la page change
+  if(typeof render==='function'){const orig=render;let last=null;
+    render=function(...a){const c=document.getElementById('content');const chg=state.view!==last;last=state.view;
+      document.querySelectorAll('#nav a[data-view]').forEach(x=>x.classList.toggle('on',x.dataset.view===state.view));
+      if(chg&&c){c.classList.remove('enter');void c.offsetWidth;c.classList.add('enter');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('enter'),700)}
+      return orig.apply(this,a)}}
+  // texte jaune
+  const SPL=['Votre atelier créatif !','100% pixels !','Fait main !','Avec des mobs !','Minage 3×3 !','Bedrock 1.26 !','Ne pas creuser tout droit !','Aussi en 3D !','Creeper ? Aw man !','Pouvoirs spéciaux !'];
+  const sp=document.getElementById('splash');if(sp)sp.textContent=SPL[Math.floor(Math.random()*SPL.length)];
+})();
+</script>
+<div class="modal" id="newProjectModal"><div class="box" style="max-width:510px"><div class="modal-heading"><div><div class="eyebrow">UNE NOUVELLE AVENTURE</div><h3 id="newProjectTitle">Créons votre projet.</h3><p>Quelques détails, et votre atelier est prêt.</p></div><button type="button" class="iconbutton" data-close-modal="newProjectModal" aria-label="Fermer">×</button></div><form id="newProjectForm" class="new-project-form"><label for="np_name">Nom du projet</label><input id="np_name" placeholder="Les trésors de l’Overworld" required maxlength="100" autocomplete="off"><div class="row"><div><label for="np_ns">Namespace</label><input id="np_ns" placeholder="mon_addon" pattern="[a-z][a-z0-9_]*" title="Une lettre minuscule, puis des minuscules, chiffres ou underscores." required maxlength="64" autocomplete="off"><p class="form-hint">Préfixe unique : mon_addon:rubis</p></div><div><label for="np_ver">Version Minecraft ciblée</label><select id="np_ver"><option>1.21.0</option><option>1.21.40</option><option>1.20.80</option></select><p class="form-hint">À vérifier dans votre jeu.</p></div></div><label for="np_desc">Description <span class="muted">· facultative</span></label><input id="np_desc" placeholder="Qu’allez-vous inventer ?" maxlength="500"><div id="newProjectError" role="alert"></div><div class="form-footer"><button type="button" data-close-modal="newProjectModal">Annuler</button><button class="primary" id="np_go" type="submit">Créer le projet →</button></div></form></div></div>
+<div class="modal" id="commandModal"><div class="box" style="max-width:560px"><div class="modal-heading"><h3 id="commandTitle">Où voulez-vous créer ?</h3><button class="iconbutton" data-close-modal="commandModal" aria-label="Fermer">×</button></div><input id="commandSearch" type="search" aria-label="Rechercher un outil" placeholder="Items, textures, skins, export…" autocomplete="off"><div class="quick-list" id="commandList"></div><p class="empty" id="commandEmpty" hidden>Aucun outil trouvé. Essayez un autre mot.</p><div class="shortcuts"><span><kbd>↑ ↓</kbd> parcourir</span><span><kbd>Entrée</kbd> ouvrir</span><span><kbd>Échap</kbd> fermer</span></div></div></div>
+<div class="modal" id="studioHelp"><div class="box" style="max-width:620px"><div class="modal-heading"><div><div class="eyebrow">PREMIERS PAS</div><h3 id="helpTitle">Bienvenue dans votre atelier.</h3></div><button class="iconbutton" data-close-modal="studioHelp" aria-label="Fermer le guide">×</button></div><div class="help-content"><h4>01 · Créez ou ouvrez un projet</h4><p>Un projet regroupe tout votre add-on. Son namespace est le préfixe de vos identifiants, par exemple <code>mon_addon:rubis</code>. Le studio conserve vos projets dans son dossier <code>data/</code>.</p><h4>02 · Imaginez votre contenu</h4><p>Utilisez le menu pour créer des items, blocs, mobs, recettes, tables de butin, sons ou skins. Les textures se dessinent pixel par pixel, avec un aperçu 3D pour les contenus compatibles.</p><h4>03 · Enregistrez vos modifications</h4><p>Les boutons « Enregistrer » et le raccourci <kbd>Ctrl S</kbd> sauvegardent le projet. L’historique permet de retrouver les versions précédentes. Conservez une copie de votre dossier data pour sauvegarder l’ensemble du studio.</p><h4>04 · Testez dans Minecraft Bedrock</h4><p>Dans « Exporter & installer », consultez les vérifications puis téléchargez le fichier <code>.mcaddon</code>. Importez-le sur un appareil compatible et activez les packs dans un monde de test. L’installation directe sur serveur nécessite une configuration Linux spécifique ; l’export fonctionne indépendamment.</p><div class="shortcuts"><span><kbd>Ctrl K</kbd> rechercher un outil</span><span><kbd>Ctrl S</kbd> enregistrer</span><span><kbd>Ctrl Z</kbd> annuler dans l’éditeur de textures</span></div></div></div></div>
+<script src="studio.js"></script>
+</body>
+</html>

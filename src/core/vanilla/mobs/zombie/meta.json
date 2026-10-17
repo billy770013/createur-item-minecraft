@@ -1,0 +1,1 @@
+{"base": "zombie", "nom": "Zombie", "tw": 64, "th": 32, "geo": true, "health": 20, "speed": null, "damage": 3, "spawn": true, "hostile": true}

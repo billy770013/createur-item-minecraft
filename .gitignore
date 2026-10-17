@@ -1,0 +1,24 @@
+# Dependencies and generated output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# Projects, textures, uploaded sounds and local databases
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+
+# Local backups, development checks and executables
+.local-backup/
+*.exe
+*.log
+.DS_Store
+Thumbs.db
+.idea/

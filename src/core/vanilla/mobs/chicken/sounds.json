@@ -1,0 +1,91 @@
+{
+ "__molang_version": 13,
+ "events": {
+  "ambient": "mob.chicken.say",
+  "death": "mob.chicken.hurt",
+  "eat": "",
+  "hurt": "mob.chicken.hurt",
+  "plop": "mob.chicken.plop",
+  "step": {
+   "pitch": 1.0,
+   "sound": "mob.chicken.step",
+   "volume": 0.25
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "variants": {
+  "key": "query.is_baby ? 'baby' : query.property('minecraft:sound_variant')",
+  "map": {
+   "baby": {
+    "events": {
+     "ambient": {
+      "pitch": 0.5,
+      "sound": "mob.baby_chicken.ambient",
+      "volume": 1.0
+     },
+     "ambient.baby": {
+      "pitch": 0.5,
+      "sound": "mob.baby_chicken.ambient",
+      "volume": 1.0
+     },
+     "death": {
+      "pitch": 0.5,
+      "sound": "mob.baby_chicken.death",
+      "volume": 1.0
+     },
+     "hurt": {
+      "pitch": 0.5,
+      "sound": "mob.baby_chicken.hurt",
+      "volume": 1.0
+     },
+     "step": {
+      "pitch": 0.5,
+      "sound": "mob.baby_chicken.step",
+      "volume": 1.0
+     }
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "default": {
+    "events": {
+     "ambient": {
+      "sound": "mob.chicken.say",
+      "volume": 0.8
+     },
+     "death": {
+      "pitch": 0.9,
+      "sound": "mob.chicken.hurt",
+      "volume": 0.5
+     },
+     "hurt": {
+      "sound": "mob.chicken.hurt"
+     },
+     "plop": "mob.chicken.plop",
+     "step": {
+      "pitch": 1.0,
+      "sound": "mob.chicken.step",
+      "volume": 0.1
+     }
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   },
+   "picky": {
+    "events": {
+     "ambient": "mob.picky_chicken.say",
+     "death": "mob.picky_chicken.death",
+     "hurt": "mob.picky_chicken.hurt",
+     "plop": "mob.chicken.plop",
+     "step": "mob.chicken.step"
+    },
+    "pitch": 1.0,
+    "volume": 1.0
+   }
+  }
+ },
+ "volume": 1.0
+}

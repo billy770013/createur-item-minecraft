@@ -1,0 +1,29 @@
+{
+  "name": "mcstudio",
+  "version": "0.1.0",
+  "description": "Atelier visuel de création d’add-ons Minecraft Bedrock : items, blocs, mobs, textures et skins.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server/index.ts",
+    "start": "tsx src/server/index.ts",
+    "test": "vitest run",
+    "gen:example": "tsx src/core/examples/generateExample.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "better-sqlite3": "^11.8.1",
+    "express": "^4.21.2",
+    "three": "0.128.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/archiver": "^8.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^4.17.25",
+    "@types/node": "^20.19.43",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}

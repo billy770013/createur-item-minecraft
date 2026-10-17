@@ -1,0 +1,26 @@
+{
+ "events": {
+  "ambient": "mob.polarbear.idle",
+  "ambient.baby": "mob.polarbear_baby.idle",
+  "death": "mob.polarbear.death",
+  "hurt": {
+   "sound": "mob.polarbear.hurt",
+   "volume": 0.7
+  },
+  "mob.warning": {
+   "pitch": 1.0,
+   "sound": "mob.polarbear.warning",
+   "volume": 1.2
+  },
+  "step": {
+   "pitch": 1.0,
+   "sound": "mob.polarbear.step",
+   "volume": 0.7
+  }
+ },
+ "pitch": [
+  0.8,
+  1.2
+ ],
+ "volume": 1.0
+}

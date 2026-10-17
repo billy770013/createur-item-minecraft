@@ -1,0 +1,1 @@
+{"base": "creeper", "nom": "Creeper", "tw": 64, "th": 32, "geo": true, "health": 20, "speed": 0.2, "damage": 3, "spawn": true, "hostile": true}
