@@ -1,4 +1,4 @@
-# Minecraft Creator Studio
+# ⛏️ Créateur d'Items Minecraft ✨🧱
 
 **Imaginez. Assemblez. Explorez.**
 
